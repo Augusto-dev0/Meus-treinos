@@ -16,7 +16,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cada
 
 ## 📱 Demo
 
-> **[augusto-dev0.github.io/meus-treinos](https://augusto-dev0.github.io/TreinoSite/)**
+> **[meus-treinos.com](https://meus-treinos-dun.vercel.app/)**
 
 ---
 
