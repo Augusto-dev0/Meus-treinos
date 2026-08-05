@@ -116,13 +116,34 @@ function playBeep() {
 }
 
 /* Notifica o usuário quando QUALQUER cronômetro do site chega a zero:
-   vibra (se suportado) e toca um beep curto. Chamar sempre que um
-   cronômetro terminar naturalmente (não quando for pausado/cancelado). */
+   vibra (se suportado), toca um beep curto E pisca a tela.
+   O flash visual existe porque vibração e som têm limitações reais em
+   alguns aparelhos — principalmente iPhone:
+   - iOS/Safari nunca implementou a Vibration API (nenhuma versão, nem
+     em site salvo na tela de início). Não há como contornar via código.
+   - iOS silencia sons de Web Audio quando a chavinha lateral está no
+     modo silencioso, diferente de apps nativos.
+   Por isso o flash na tela é o aviso garantido para todo mundo, e
+   vibração/som são reforços extras quando o aparelho permite. */
 function notifyTimerEnd() {
   if ('vibrate' in navigator) {
     try { navigator.vibrate([160, 80, 160]); } catch {}
   }
   playBeep();
+  flashScreen();
+}
+
+function flashScreen() {
+  let el = document.getElementById('timer-flash');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'timer-flash';
+    document.body.appendChild(el);
+  }
+  el.classList.remove('flash-active');
+  void el.offsetWidth; /* reinicia a animação se disparar de novo rápido */
+  el.classList.add('flash-active');
+  el.addEventListener('animationend', () => el.classList.remove('flash-active'), { once:true });
 }
 
 /* Active workout */
