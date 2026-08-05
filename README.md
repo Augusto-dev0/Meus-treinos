@@ -90,7 +90,7 @@ TreinoSite-/
 
 ### Opção 1 — Vercel (recomendado)
 
-1. Acesse `https://augusto-dev0.github.io/TreinoSite/`
+1. Acesse `https://meus-treinos-dun.vercel.app/`
 
 ### Opção 2 — Local
 
