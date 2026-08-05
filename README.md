@@ -16,7 +16,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cada
 
 ## 📱 Demo
 
-> **[augusto-dev0.github.io/meus-treinos](https://augusto-dev0.github.io/TreinoSite/)**
+> **[meus-treinos.com](https://meus-treinos-dun.vercel.app/)**
 
 ---
 
@@ -72,7 +72,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cada
 ## 🗂️ Estrutura do projeto
 
 ```
-meus-treinos/
+TreinoSite-/
 ├── index.html          # Estrutura, seções e todos os modais
 ├── style.css           # Estilos, variáveis, animações, responsividade
 ├── script.js           # Lógica completa do app
@@ -88,16 +88,14 @@ meus-treinos/
 
 ## 🚀 Como usar
 
-### Opção 1 — GitHub Pages (recomendado)
+### Opção 1 — Vercel (recomendado)
 
-1. Faça um fork ou clone deste repositório
-2. Vá em **Settings → Pages → Source: main / root**
-3. Acesse `https://augusto-dev0.github.io/TreinoSite/`
+1. Acesse `https://meus-treinos-dun.vercel.app/`
 
 ### Opção 2 — Local
 
 ```bash
-git clone https://github.com/Augusto-dev0/TreinoSite.git
+git clone https://github.com/Augusto-dev0/Meus-treinos.git
 cd meus-treinos
 # Abra index.html no browser · nenhuma dependência necessária
 ```
