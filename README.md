@@ -1,6 +1,6 @@
 # ⚡ Meus Treinos
 
-App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cadastro. Hospedado no GitHub Pages e instalável como PWA no celular.
+App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cadastro. Hospedado na vercel e instalável como PWA no celular.
 
 <div align="center">
 
