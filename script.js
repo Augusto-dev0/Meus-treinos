@@ -73,7 +73,8 @@ let tTotal=60, tRemain=60, tRunning=false, tInterval=null;
 const PRESETS=[30,60,90,120];
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NOTIFICAÇÃO DE FIM DE CRONÔMETRO — vibração + som (funciona offline, PWA)
+   NOTIFICAÇÃO DE FIM DE CRONÔMETRO — som + vibração + flash + notificação
+   do sistema (funciona offline, PWA)
    ═══════════════════════════════════════════════════════════════════════════ */
 let _audioCtx = null;
 function _getAudioCtx() {
@@ -95,42 +96,89 @@ function _unlockAudio() {
 window.addEventListener('pointerdown', _unlockAudio, { once:true });
 window.addEventListener('touchstart', _unlockAudio, { once:true });
 
+/* Toca uma série de bips (não só um par) ao longo de alguns segundos.
+   Um som curto de menos de 1s passa despercebido se o usuário não está
+   olhando pro celular naquele instante exato — repetir por mais tempo
+   aumenta bastante a chance de ser percebido. */
 function playBeep() {
   const ctx = _getAudioCtx();
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume().catch(()=>{});
   const now = ctx.currentTime;
-  /* Dois bips curtos, mais perceptíveis que um único tom contínuo */
-  [0, 0.22].forEach(offset => {
+  const beepTimes = [0, 0.22, 1.0, 1.22, 2.0, 2.22]; // 3 "duplas" de bips em ~2.4s
+  beepTimes.forEach(offset => {
     const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(880, now + offset);
     gain.gain.setValueAtTime(0, now + offset);
-    gain.gain.linearRampToValueAtTime(0.35, now + offset + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.18);
+    gain.gain.linearRampToValueAtTime(0.4, now + offset + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.19);
     osc.connect(gain).connect(ctx.destination);
     osc.start(now + offset);
     osc.stop(now + offset + 0.2);
   });
 }
 
-/* Notifica o usuário quando QUALQUER cronômetro do site chega a zero:
-   vibra (se suportado), toca um beep curto E pisca a tela.
-   O flash visual existe porque vibração e som têm limitações reais em
-   alguns aparelhos — principalmente iPhone:
-   - iOS/Safari nunca implementou a Vibration API (nenhuma versão, nem
-     em site salvo na tela de início). Não há como contornar via código.
-   - iOS silencia sons de Web Audio quando a chavinha lateral está no
-     modo silencioso, diferente de apps nativos.
-   Por isso o flash na tela é o aviso garantido para todo mundo, e
-   vibração/som são reforços extras quando o aparelho permite. */
+/* ── Notificação do sistema (banner) ──────────────────────────────────────
+   No iPhone, se o app estiver ADICIONADO À TELA DE INÍCIO (iOS 16.4+),
+   isso mostra um banner de notificação de verdade, com som/haptic do
+   próprio sistema — funciona mesmo com a tela bloqueada ou o app em
+   segundo plano, que é justamente o caso em que som/flash na tela não
+   adiantam nada. Em Safari comum (sem instalar) ou iOS antigo, a API
+   simplesmente não existe e essa parte é ignorada sem gerar erro. */
+let _notifPermissionAsked = false;
+function ensureNotifPermission() {
+  if (_notifPermissionAsked) return;
+  _notifPermissionAsked = true;
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().catch(()=>{});
+  }
+}
+/* Pede a permissão assim que o usuário interage com o site pela primeira
+   vez (não pode ser pedida sem gesto do usuário). */
+window.addEventListener('pointerdown', ensureNotifPermission, { once:true });
+window.addEventListener('touchstart', ensureNotifPermission, { once:true });
+
+function showSystemNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const title = '⏱️ Cronômetro finalizado!';
+  const options = {
+    body: 'Seu tempo de descanso acabou. Bora continuar o treino 💪',
+    icon: './imagens/icon-192.png',
+    badge: './imagens/icon-192.png',
+    tag: 'timer-done',
+    renotify: true,
+    vibrate: [160, 80, 160]
+  };
+  /* Preferir o Service Worker (mais confiável em segundo plano no
+     celular); cair para Notification direta se não houver SW ativo. */
+  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+    navigator.serviceWorker.ready
+      .then(reg => reg.showNotification(title, options))
+      .catch(() => { try { new Notification(title, options); } catch {} });
+  } else {
+    try { new Notification(title, options); } catch {}
+  }
+}
+
+/* Notifica o usuário quando QUALQUER cronômetro do site chega a zero,
+   combinando 4 canais ao mesmo tempo — cada um cobre a limitação do
+   outro em algum aparelho/situação:
+   1. Vibração        → funciona em Android; iOS nunca implementou.
+   2. Som (Web Audio)  → pode ser silenciado pela chavinha lateral no iOS.
+   3. Flash na tela    → só percebido se o usuário estiver olhando.
+   4. Notificação do sistema → funciona com tela bloqueada/app em 2º
+      plano no iOS 16.4+, mas só se o app estiver instalado na tela de
+      início E o usuário tiver aceitado a permissão. */
 function notifyTimerEnd() {
   if ('vibrate' in navigator) {
-    try { navigator.vibrate([160, 80, 160]); } catch {}
+    try { navigator.vibrate([160, 80, 160, 80, 160]); } catch {}
   }
   playBeep();
   flashScreen();
+  showSystemNotification();
 }
 
 function flashScreen() {
@@ -138,6 +186,7 @@ function flashScreen() {
   if (!el) {
     el = document.createElement('div');
     el.id = 'timer-flash';
+    el.innerHTML = `<div class="timer-flash-toast">⏱ Tempo esgotado!</div>`;
     document.body.appendChild(el);
   }
   el.classList.remove('flash-active');
