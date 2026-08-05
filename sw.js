@@ -1,4 +1,4 @@
-const CACHE = 'meus-treinos-v2';
+const CACHE = 'meus-treinos-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -23,7 +23,36 @@ self.addEventListener('activate', e => {
   );
 });
 
+/* Estratégia "network-first" para HTML/CSS/JS: sempre tenta buscar a
+   versão mais nova na rede primeiro, e só usa o cache como reserva se
+   estiver offline. Isso evita que o app fique "preso" numa versão
+   antiga depois de um deploy — o problema que causava o site não
+   atualizar sozinho em alguns celulares (ex.: iPhone com o app
+   instalado na tela de início). Imagens e fontes continuam cache-first
+   (mudam raramente, prioriza velocidade). */
+const NETWORK_FIRST_EXT = ['.html', '.css', '.js'];
+
 self.addEventListener('fetch', e => {
+  const url = e.request.url;
+  const isNetworkFirst = e.request.mode === 'navigate' ||
+    NETWORK_FIRST_EXT.some(ext => url.endsWith(ext)) ||
+    url.endsWith('/');
+
+  if (isNetworkFirst) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(c => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
