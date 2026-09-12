@@ -63,7 +63,12 @@
         <h2 class="section-title">Histórico</h2>
         <p class="section-sub">Seus treinos concluídos</p>
       </div>
-      <div class="streak-badge" id="streak-badge"></div>
+      <div class="hist-header-right">
+        <button class="icon-btn cal-btn" onclick="openCalendarModal()" title="Ver calendário">
+          <i class="ph ph-calendar-blank"></i>
+        </button>
+        <div class="streak-badge" id="streak-badge"></div>
+      </div>
     </div>
     <div id="hist-list"></div>
     <div id="hist-empty" class="big-empty" style="display:none">
@@ -366,6 +371,45 @@
       <button class="tbtn primary" onclick="saveHistEdit()">
         <i class="ph ph-floppy-disk"></i> Salvar
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CALENDÁRIO DE TREINOS ═══════════════════════════════════════════ -->
+<div id="overlay-calendar" class="overlay" onclick="if(event.target===this)closeCalendarModal()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>Calendário de treinos</h2>
+      <button class="modal-close" onclick="closeCalendarModal()"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="cal-nav">
+        <button class="icon-btn" onclick="calendarPrevMonth()" title="Mês anterior">
+          <i class="ph ph-caret-left"></i>
+        </button>
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <button class="icon-btn" onclick="calendarNextMonth()" title="Próximo mês">
+          <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+      <div class="cal-weekdays">
+        <span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-trained"></span>
+          <span>Treinado</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-today"></span>
+          <span>Hoje</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-missed"></span>
+          <span>Falhou</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
