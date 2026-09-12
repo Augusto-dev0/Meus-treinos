@@ -14,6 +14,7 @@ const DAYS_SHORT   = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const DAYS_FULL    = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
 const WEEKDAY      = (new Date().getDay() + 6) % 7;
 const MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTHS_FULL  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const CATALOG_CATEGORIES = ['Academia','Casa','Calistenia','Esportes','Funcional','Mobilidade'];
 const EQUIPMENT_OPTIONS = ['Todos','Nenhum','Barra','Halteres','Maquina','Cabo','Elastico','Kettlebell','Banco','Bola','Cardio','Faixa/TRX','Anilha','Caixa','Medicine ball'];
 const GROUP_META = {
@@ -57,6 +58,7 @@ let history  = load(K_HISTORY);
   if (allAuto) { library = []; save(K_LIB, library); }
 })();
 let selDay   = WEEKDAY;
+let clipboardWorkout = null; /* treino copiado, aguardando ser colado em outro dia */
 let libFilter = 'Todos';
 let libraryMode = 'my';
 const exerciseCatalog = buildExerciseCatalog();
@@ -442,6 +444,26 @@ function reanimate(el) {
   el.classList.add('fade-swap');
 }
 
+/* ── Toast genérico ────────────────────────────────────────────────────────
+   Mensagem curta que aparece na parte de baixo da tela e some sozinha.
+   Usado para confirmar ações rápidas (copiar/colar treino, etc.) sem
+   precisar de um modal de confirmação. */
+let _toastTimeout = null;
+function showToast(msg) {
+  let el = document.getElementById('app-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'app-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.remove('toast-active');
+  void el.offsetWidth;
+  el.classList.add('toast-active');
+  clearTimeout(_toastTimeout);
+  _toastTimeout = setTimeout(() => el.classList.remove('toast-active'), 2800);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    STATS
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -483,14 +505,31 @@ function renderDayContent() {
     <div class="day-header-name">${DAYS_FULL[selDay]}${selDay===WEEKDAY?' <span>(hoje)</span>':''}</div>
   </div>`;
 
+  /* Faixa de "área de transferência": aparece em qualquer dia enquanto
+     houver um treino copiado esperando ser colado em outro lugar. */
+  const clipboardBanner = clipboardWorkout ? `
+    <div class="clipboard-banner">
+      <i class="ph ph-clipboard-text"></i>
+      <span>Treino <strong>"${clipboardWorkout.name}"</strong> copiado.</span>
+      <button class="clipboard-cancel" onclick="clearClipboard()" title="Cancelar cópia">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>` : '';
+
+  const pasteBtn = clipboardWorkout ? `
+    <button class="btn-ghost" onclick="pasteWorkout(${selDay})">
+      <i class="ph ph-clipboard"></i> Colar "${clipboardWorkout.name}" aqui
+    </button>` : '';
+
   if (!ws.length) {
-    c.innerHTML = hdr + `
+    c.innerHTML = hdr + clipboardBanner + `
       <div class="day-empty">Nenhum treino em <strong>${DAYS_FULL[selDay]}</strong>.<br>
         <span style="font-size:12px">Dia de descanso, ou crie um treino abaixo.</span></div>
       <div class="day-actions">
         <button class="btn-ghost" onclick="openWorkoutModal(${selDay},null)">
           <i class="ph ph-pencil-simple"></i> Criar treino
         </button>
+        ${pasteBtn}
       </div>`;
     reanimate(c);
     return;
@@ -521,6 +560,9 @@ function renderDayContent() {
           <button class="icon-btn play" onclick="startActiveWorkout(${selDay},${wi})" title="Iniciar treino">
             <i class="ph ph-play-circle"></i>
           </button>
+          <button class="icon-btn" onclick="copyWorkout(${selDay},${wi})" title="Copiar treino para outro dia">
+            <i class="ph ph-copy"></i>
+          </button>
           <button class="icon-btn edit" onclick="openWorkoutModal(${selDay},${wi})" title="Editar">
             <i class="ph ph-pencil-simple"></i>
           </button>
@@ -533,13 +575,41 @@ function renderDayContent() {
     </div>`;
   }).join('');
 
-  c.innerHTML = hdr + cards + `
+  c.innerHTML = hdr + clipboardBanner + cards + `
     <div class="day-actions">
       <button class="btn-ghost" onclick="openWorkoutModal(${selDay},null)">
         <i class="ph ph-plus"></i> Novo treino
       </button>
+      ${pasteBtn}
     </div>`;
   reanimate(c);
+}
+
+/* ── Copiar / colar treinos entre dias ────────────────────────────────────
+   Copia mantém o treino "na área de transferência" (variável em memória)
+   até o usuário colar em um ou mais dias, ou cancelar. Assim dá pra
+   copiar de Segunda e colar em Terça, Quinta etc. sem repetir a ação. */
+function copyWorkout(day, wi) {
+  const w = workouts[day]?.[wi];
+  if (!w) return;
+  clipboardWorkout = JSON.parse(JSON.stringify(w)); /* clone independente */
+  showToast(`Treino "${w.name}" copiado. Selecione o dia e toque em "Colar".`);
+  renderDayContent();
+}
+
+function pasteWorkout(day) {
+  if (!clipboardWorkout) return;
+  const clone = JSON.parse(JSON.stringify(clipboardWorkout));
+  if (!workouts[day]) workouts[day] = [];
+  workouts[day].push(clone);
+  save(K_WORKOUTS, workouts);
+  renderDayStrip(); renderDayContent(); renderStats();
+  showToast(`Treino colado em ${DAYS_FULL[day]}!`);
+}
+
+function clearClipboard() {
+  clipboardWorkout = null;
+  renderDayContent();
 }
 
 function confirmDeleteWorkout(day,wi) {
@@ -877,6 +947,86 @@ function renderHistory() {
     </div>`;
   }).join('');
   reanimate(list);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CALENDÁRIO DE TREINOS (modal no Histórico)
+   Mostra o mês com um círculo verde em volta de cada dia em que houve
+   pelo menos um treino registrado no histórico.
+   ═══════════════════════════════════════════════════════════════════════════ */
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-11
+
+function openCalendarModal() {
+  const now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+  document.getElementById('overlay-calendar').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCalendarModal() {
+  document.getElementById('overlay-calendar').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function calendarPrevMonth() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+function calendarNextMonth() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent =
+    `${MONTHS_FULL[calMonth]} ${calYear}`;
+
+  /* Dias (só a data, sem hora) em que existe ao menos 1 treino no histórico */
+  const trainedDays = new Set(
+    history.map(h => {
+      const d = new Date(h.date);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    })
+  );
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isCurrentMonth = today.getFullYear()===calYear && today.getMonth()===calMonth;
+
+  const firstOfMonth   = new Date(calYear, calMonth, 1);
+  const startWeekday   = (firstOfMonth.getDay() + 6) % 7; // 0=Seg
+  const daysInMonth    = new Date(calYear, calMonth+1, 0).getDate();
+
+  let cells = '';
+  for (let i=0; i<startWeekday; i++) cells += `<div class="cal-cell cal-cell-empty"></div>`;
+
+  for (let day=1; day<=daysInMonth; day++) {
+    const dateObj  = new Date(calYear, calMonth, day);
+    const key      = `${calYear}-${calMonth}-${day}`;
+    const trained  = trainedDays.has(key);
+    const isToday  = isCurrentMonth && today.getDate()===day;
+    const isPast   = dateObj.getTime() < today.getTime();
+
+    /* "Perdido" = dia útil que tinha treino programado na semana, já
+       passou e não foi treinado. Dias sem treino programado (folga) e
+       fins de semana nunca contam como falha — mesma regra usada na
+       sequência (🔥). Hoje nunca é marcado como perdido, mesmo que
+       tenha treino programado e ainda não tenha sido feito. */
+    const weekday     = (dateObj.getDay() + 6) % 7;
+    const isBizDay     = weekday <= 4;
+    const isScheduled  = isBizDay && workouts[weekday] && workouts[weekday].length > 0;
+    const missed       = isScheduled && isPast && !trained;
+
+    const cls = ['cal-cell'];
+    if (trained) cls.push('cal-cell-trained');
+    if (missed)  cls.push('cal-cell-missed');
+    if (isToday) cls.push('cal-cell-today');
+    cells += `<div class="${cls.join(' ')}"><span>${day}</span>${isToday?'<i class="cal-today-dot"></i>':''}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = cells;
 }
 
 /* ── Apagar histórico ─────────────────────────────────────────────────────── */
