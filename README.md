@@ -23,23 +23,29 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cada
 ## ✨ Funcionalidades
 
 ### 🏋️ Treinos
+
 - Organize treinos por dia da semana (Segunda a Domingo)
 - Crie quantos treinos quiser por dia
 - Monte cada treino com exercícios da sua biblioteca pessoal
 - Reordene os exercícios com **drag & drop**
+- **Copie um treino e cole em outro dia** (ou em vários) sem recriar do zero
 
 ### ▶ Modo Treino Ativo
+
 - Tela de foco exercício por exercício
 - Barra de progresso e cronômetro em tempo real
 - Timer de descanso rápido embutido (30s / 1min / 1m30)
 - Ao concluir, salva automaticamente no histórico com duração total
 
 ### 📅 Histórico
+
 - Lista de todos os treinos concluídos com data, dia e exercícios
 - Edição de registros (nome, data, duração, dia da semana)
-- Contador de **sequência de dias consecutivos** 🔥
+- Contador de **sequência de dias consecutivos** 🔥 — considera apenas dias úteis com treino programado na semana; folgas e fins de semana não quebram a sequência
+- **Calendário mensal** com marcação por cor: 🟢 treinado · 🔵 hoje · 🔴 dia perdido (treino programado que não foi feito)
 
 ### 📋 Biblioteca
+
 - Começa vazia — 100% personalizada pelo usuário
 - Cadastre nome, grupo muscular, emoji, séries, cor e dica para cada exercício
 - Modo de **seleção múltipla** para excluir vários exercícios de uma vez
@@ -47,22 +53,35 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend, sem cada
 - Filtro por grupo muscular
 
 ### 🗺️ Explorar Catálogo
+
 - Catálogo com centenas de exercícios organizados por categoria, grupo muscular e equipamento
 - Filtros combinados: **Categoria** (Academia, Casa, Calistenia…) + **Músculo** + **Equipamento**
 - Modo de **seleção múltipla** para adicionar vários exercícios à biblioteca de uma vez
 - Adição individual com um clique, ou edição personalizada antes de importar
 
 ### ⏱️ Timer
+
 - Cronômetro regressivo com anel SVG animado
 - Presets rápidos: 30s, 1min, 1m30, 2min
 - Botão **+1min** para estender sem resetar
 
+### 🔔 Aviso de fim de cronômetro
+
+Disparado em todo cronômetro do site (Timer avulso e descanso do treino ativo), combinando 4 canais para cobrir limitações de cada aparelho:
+
+- Vibração (quando o navegador suporta)
+- Som (bip via Web Audio API, funciona offline)
+- Flash visual na tela + texto — garantido em qualquer dispositivo
+- Notificação do sistema (funciona com o app em segundo plano/tela bloqueada, se instalado na tela de início e a permissão for aceita)
+
 ### 🗺️ Checklist de primeiros passos
+
 - Card guia o usuário novo pelos 3 passos iniciais
 - Some automaticamente após concluir tudo
 - Pode ser dispensado manualmente
 
 ### 📲 PWA ; Instale no celular
+
 - Funciona **offline** completo após a primeira visita
 - Aparece como app nativo na tela inicial (Android e iOS)
 - Sem necessidade de loja de aplicativos
@@ -106,15 +125,15 @@ cd meus-treinos
 
 ## 🛠️ Tecnologias
 
-| Tecnologia | Uso |
-|---|---|
-| HTML5 | Estrutura, modais, tela de treino ativo |
-| CSS3 | Variáveis, animações, layout responsivo, confetti |
-| JavaScript ES6+ | Lógica, localStorage, drag & drop, Service Worker |
-| Phosphor Icons | Ícones da interface |
-| Google Fonts | Bebas Neue (títulos) + DM Sans (corpo) |
-| Web App Manifest | Instalação como PWA |
-| Service Worker API | Cache offline |
+| Tecnologia         | Uso                                               |
+| ------------------ | ------------------------------------------------- |
+| HTML5              | Estrutura, modais, tela de treino ativo           |
+| CSS3               | Variáveis, animações, layout responsivo, confetti |
+| JavaScript ES6+    | Lógica, localStorage, drag & drop, Service Worker |
+| Phosphor Icons     | Ícones da interface                               |
+| Google Fonts       | Bebas Neue (títulos) + DM Sans (corpo)            |
+| Web App Manifest   | Instalação como PWA                               |
+| Service Worker API | Cache offline                                     |
 
 ---
 
@@ -122,21 +141,21 @@ cd meus-treinos
 
 Todos os dados ficam no `localStorage` do browser — nenhum dado é enviado a servidores.
 
-| Chave | Conteúdo |
-|---|---|
-| `mt-library-v1` | Exercícios da biblioteca pessoal |
-| `mt-workouts-v1` | Treinos por dia da semana |
-| `mt-history-v1` | Histórico de treinos concluídos |
-| `mt-checklist-dismissed` | Se o checklist foi dispensado |
+| Chave                    | Conteúdo                         |
+| ------------------------ | -------------------------------- |
+| `mt-library-v1`          | Exercícios da biblioteca pessoal |
+| `mt-workouts-v1`         | Treinos por dia da semana        |
+| `mt-history-v1`          | Histórico de treinos concluídos  |
+| `mt-checklist-dismissed` | Se o checklist foi dispensado    |
 
 ---
 
 ## 📱 Responsividade
 
-| Breakpoint | Layout |
-|---|---|
-| `> 540px` | Navegação por abas no topo, grid de biblioteca multi-coluna |
-| `≤ 540px` | Bottom navigation bar fixa, modais como bottom sheet, biblioteca em 2 colunas |
+| Breakpoint | Layout                                                                        |
+| ---------- | ----------------------------------------------------------------------------- |
+| `> 540px`  | Navegação por abas no topo, grid de biblioteca multi-coluna                   |
+| `≤ 540px`  | Bottom navigation bar fixa, modais como bottom sheet, biblioteca em 2 colunas |
 
 ---
 
