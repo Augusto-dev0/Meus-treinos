@@ -12,6 +12,7 @@
   --accent2:  #a0d040;
   --red:      #ff5f5f;
   --teal:     #3ecfb0;
+  --cyan:     #22d3ee;
   --r:        12px;
   --r-sm:     8px;
 
@@ -273,6 +274,124 @@ body {
   transition: border-color .14s;
 }
 .hist-entry:hover { border-color: var(--border2); }
+
+/* ── Botão de calendário no cabeçalho do histórico ────────────────────────── */
+.hist-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.cal-btn { width: 38px; height: 38px; }
+
+/* ── Faixa "área de transferência" (copiar/colar treino) ──────────────────── */
+.clipboard-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(200,240,96,.08); border: 1px solid rgba(200,240,96,.3);
+  border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 12px;
+  font-size: var(--fs-sm); color: var(--text);
+}
+.clipboard-banner i.ph-clipboard-text { color: var(--accent); font-size: 17px; flex-shrink: 0; }
+.clipboard-banner span { flex: 1; min-width: 0; }
+.clipboard-cancel {
+  width: 24px; height: 24px; border: none; background: transparent;
+  color: var(--muted); cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; border-radius: 6px;
+}
+.clipboard-cancel:hover { background: var(--surface2); color: var(--text); }
+
+/* ── Toast genérico ────────────────────────────────────────────────────────── */
+#app-toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 9998;
+  transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: var(--fs-sm);
+  padding: 11px 18px; border-radius: 30px; max-width: min(90vw, 380px);
+  text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  transition: opacity .22s ease, transform .22s ease;
+}
+#app-toast.toast-active {
+  opacity: 1; transform: translate(-50%, 0);
+  padding-bottom: calc(11px + env(safe-area-inset-bottom));
+}
+@media (max-width: 600px) {
+  #app-toast { bottom: calc(64px + env(safe-area-inset-bottom)); } /* acima da bottom-nav */
+}
+
+/* ── Calendário de treinos (modal) ────────────────────────────────────────── */
+.cal-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cal-month-label {
+  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: .5px;
+}
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  text-align: center; font-size: var(--fs-xs); color: var(--muted);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px;
+}
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  gap: 4px;
+}
+.cal-cell {
+  aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
+  font-size: var(--fs-sm); color: var(--text); position: relative;
+}
+.cal-cell-empty { visibility: hidden; }
+.cal-cell span {
+  width: 78%; height: 78%; max-width: 34px; max-height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 2px solid transparent; transition: all .12s;
+  font-weight: 500;
+}
+/* Treinado: verde (mesma cor de destaque do app) */
+.cal-cell-trained span {
+  border-color: var(--accent); color: var(--accent); font-weight: 700;
+  background: rgba(200,240,96,.1);
+}
+/* Perdido: dia útil com treino programado que passou sem ser feito */
+.cal-cell-missed span {
+  border-color: var(--red); color: var(--red); font-weight: 600;
+  background: rgba(255,95,95,.08);
+}
+/* Hoje: pontinho ciano embaixo do número (mesmo padrão visual da tira de
+   dias da semana), em vez de um anel — fica menos "carregado" quando o
+   dia também está marcado como treinado. */
+.cal-cell-today {
+  padding-bottom: 6px; /* abre espaço pro pontinho sem distorcer a célula */
+}
+.cal-today-dot {
+  position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 5px; height: 5px; border-radius: 50%; background: var(--cyan);
+}
+
+/* ── Legenda: chips separados, cada cor com o rótulo bem ao lado ─────────── */
+.cal-legend {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.cal-legend-item {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px 5px 8px;
+  font-size: var(--fs-xs); color: var(--muted);
+}
+.cal-legend-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid transparent; display: inline-block; flex-shrink: 0;
+}
+.cal-legend-trained { border-color: var(--accent); background: rgba(200,240,96,.15); }
+.cal-legend-today   { border-color: var(--cyan);   background: var(--cyan); }
+.cal-legend-missed  { border-color: var(--red);    background: rgba(255,95,95,.15); }
+
+/* Telas bem pequenas: aperta um pouco os círculos do calendário e a legenda */
+@media (max-width: 360px) {
+  .cal-cell span { max-width: 28px; max-height: 28px; font-size: 12px; }
+  .cal-legend-item { font-size: 9px; padding: 4px 9px 4px 6px; }
+  .cal-legend-dot { width: 11px; height: 11px; }
+}
+
+/* Telas maiores: calendário um pouco mais espaçoso */
+@media (min-width: 601px) {
+  .cal-cell span { max-width: 38px; max-height: 38px; }
+}
 .hist-date-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; min-width: 32px; }
 .hist-day-num {
   font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); line-height: 1;
