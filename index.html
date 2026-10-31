@@ -16,9 +16,9 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+ 
 <div class="app" id="app">
-
+ 
   <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
   <header class="header">
     <div class="header-left">
@@ -32,7 +32,7 @@
     </div>
     <div class="header-stats" id="header-stats"></div>
   </header>
-
+ 
   <!-- ══ TABS ════════════════════════════════════════════════════════════ -->
   <nav class="tabs">
     <button class="tab active" data-tab="treinos">
@@ -48,14 +48,14 @@
       <i class="ph ph-timer"></i><span>Timer</span>
     </button>
   </nav>
-
+ 
   <!-- ══ SEÇÃO: TREINOS ══════════════════════════════════════════════════ -->
   <section id="sec-treinos" class="section active">
     <div id="checklist-card"></div>
     <div class="day-strip" id="day-strip"></div>
     <div id="day-content"></div>
   </section>
-
+ 
   <!-- ══ SEÇÃO: HISTÓRICO ════════════════════════════════════════════════ -->
   <section id="sec-historico" class="section">
     <div class="hist-header">
@@ -64,12 +64,16 @@
         <p class="section-sub">Seus treinos concluídos</p>
       </div>
       <div class="hist-header-right">
-        <button class="icon-btn cal-btn" onclick="openCalendarModal()" title="Ver calendário">
-          <i class="ph ph-calendar-blank"></i>
+        <button class="cal-open-btn" type="button" onclick="openCalendarModal()"
+                aria-label="Abrir o calendário de treinos e descansos">
+          <i class="ph ph-calendar-blank"></i><span>Calendário</span>
         </button>
         <div class="streak-badge" id="streak-badge"></div>
       </div>
     </div>
+    <p class="hist-hint" id="hist-hint" style="display:none">
+      <i class="ph ph-info"></i> Toque em um treino para ver todos os detalhes
+    </p>
     <div id="hist-list"></div>
     <div id="hist-empty" class="big-empty" style="display:none">
       <i class="ph ph-calendar-blank big-empty-icon"></i>
@@ -77,7 +81,7 @@
       <p>Inicie um treino e conclua-o<br>para aparecer aqui.</p>
     </div>
   </section>
-
+ 
   <!-- ══ SEÇÃO: BIBLIOTECA ═══════════════════════════════════════════════ -->
   <section id="sec-biblioteca" class="section">
     <div class="lib-toolbar">
@@ -120,7 +124,7 @@
       </button>
     </div>
   </section>
-
+ 
   <!-- ══ SEÇÃO: TIMER ════════════════════════════════════════════════════ -->
   <section id="sec-timer" class="section">
     <div class="timer-wrap">
@@ -148,9 +152,9 @@
       <div class="preset-row" id="preset-row"></div>
     </div>
   </section>
-
+ 
 </div><!-- .app -->
-
+ 
 <!-- ══ BOTTOM NAV ══════════════════════════════════════════════════════ -->
 <nav class="bottom-nav">
   <button class="bnav-btn active" data-tab="treinos">
@@ -166,7 +170,7 @@
     <i class="ph ph-timer"></i><span>Timer</span>
   </button>
 </nav>
-
+ 
 <!-- ══ MODO TREINO ATIVO ══════════════════════════════════════════════ -->
 <div id="active-screen" class="active-screen">
   <div class="active-topbar">
@@ -182,11 +186,11 @@
     </div>
   </div>
   <div class="active-progress-bar"><div id="active-progress-fill" class="active-progress-fill"></div></div>
-
+ 
   <!-- Exercise view -->
   <div id="active-ex-view" class="active-ex-view">
     <div class="active-ex-card" id="active-ex-card">
-      <div class="active-ex-icon" id="active-ex-icon">💪</div>
+      <div class="active-ex-icon" id="active-ex-icon"></div>
       <div class="active-ex-name" id="active-ex-name">Exercício</div>
       <div class="active-ex-sets" id="active-ex-sets">3x12</div>
       <div class="active-ex-tip"  id="active-ex-tip"></div>
@@ -216,11 +220,11 @@
       </button>
     </div>
   </div>
-
+ 
   <!-- Finish screen -->
   <div id="active-finish" class="active-finish" style="display:none">
     <div class="confetti-wrap" id="confetti-wrap"></div>
-    <div class="finish-icon">🏆</div>
+    <div class="finish-icon"><i class="ph-fill ph-trophy"></i></div>
     <h2 class="finish-title">TREINO<br><span>CONCLUÍDO!</span></h2>
     <p class="finish-sub" id="finish-sub">Excelente trabalho!</p>
     <div class="finish-stats" id="finish-stats"></div>
@@ -229,7 +233,7 @@
     </button>
   </div>
 </div>
-
+ 
 <!-- ══ MODAL: EXERCÍCIO ════════════════════════════════════════════════ -->
 <div id="overlay-ex" class="overlay" onclick="if(event.target===this)closeExModal()">
   <div class="modal">
@@ -245,12 +249,12 @@
       <div class="form-row two-col">
         <div>
           <label>Grupo muscular *</label>
-          <input id="ex-muscle" class="input" type="text" placeholder="Ex: Pernas" list="muscle-list" maxlength="30">
+          <input id="ex-muscle" class="input" type="text" placeholder="Ex: Pernas" list="muscle-list" maxlength="30" oninput="updateExIconPreview()">
           <datalist id="muscle-list"></datalist>
         </div>
         <div>
-          <label>Ícone (emoji)</label>
-          <input id="ex-icon" class="input" type="text" placeholder="🏋️" maxlength="4">
+          <label>Ícone do grupo</label>
+          <div class="ex-icon-preview" id="ex-icon-preview"></div>
         </div>
       </div>
       <div class="form-row two-col">
@@ -260,7 +264,7 @@
         </div>
         <div>
           <label>Cor do grupo</label>
-          <input id="ex-color" class="input-color" type="color" value="#c8f060">
+          <input id="ex-color" class="input-color" type="color" value="#c8f060" oninput="updateExIconPreview()">
         </div>
       </div>
       <div class="form-row two-col">
@@ -286,7 +290,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- ══ MODAL: TREINO ══════════════════════════════════════════════════ -->
 <div id="overlay-workout" class="overlay" onclick="if(event.target===this)closeWorkoutModal()">
   <div class="modal modal-wide">
@@ -326,7 +330,64 @@
     </div>
   </div>
 </div>
-
+ 
+<!-- ══ CALENDÁRIO DE TREINOS ═══════════════════════════════════════════ -->
+<div id="overlay-calendar" class="overlay" onclick="if(event.target===this)closeCalendarModal()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>Calendário de treinos</h2>
+      <button class="modal-close" onclick="closeCalendarModal()"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="cal-nav">
+        <button class="icon-btn" onclick="calendarPrevMonth()" title="Mês anterior">
+          <i class="ph ph-caret-left"></i>
+        </button>
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <button class="icon-btn" onclick="calendarNextMonth()" title="Próximo mês">
+          <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+      <div class="cal-weekdays">
+        <span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-trained"></span>
+          <span>Treinado</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-today"></span>
+          <span>Hoje</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-missed"></span>
+          <span>Falhou</span>
+        </div>
+        <div class="cal-legend-item">
+          <span class="cal-legend-dot cal-legend-rest"></span>
+          <span>Descanso</span>
+        </div>
+      </div>
+      <p class="cal-hint"><i class="ph ph-info"></i> Toque em um dia de treino ou descanso para ver os detalhes.</p>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══ DETALHES DO DIA (treino ou descanso) ═══════════════════════════ -->
+<div id="overlay-day-detail" class="overlay" onclick="if(event.target===this)closeDayDetail()">
+  <div class="modal modal-detail" role="dialog" aria-modal="true" aria-labelledby="dd-title">
+    <div class="modal-header">
+      <h2 id="dd-title">Detalhes do dia</h2>
+      <button class="modal-close" type="button" onclick="closeDayDetail()" aria-label="Fechar">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="dd-body"></div>
+  </div>
+</div>
+ 
 <!-- ══ MODAL: EDITAR HISTÓRICO ════════════════════════════════════════ -->
 <div id="overlay-hist-edit" class="overlay" onclick="if(event.target===this)closeHistEditModal()">
   <div class="modal" style="max-width:420px">
@@ -374,46 +435,7 @@
     </div>
   </div>
 </div>
-
-<!-- ══ CALENDÁRIO DE TREINOS ═══════════════════════════════════════════ -->
-<div id="overlay-calendar" class="overlay" onclick="if(event.target===this)closeCalendarModal()">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-header">
-      <h2>Calendário de treinos</h2>
-      <button class="modal-close" onclick="closeCalendarModal()"><i class="ph ph-x"></i></button>
-    </div>
-    <div class="modal-body">
-      <div class="cal-nav">
-        <button class="icon-btn" onclick="calendarPrevMonth()" title="Mês anterior">
-          <i class="ph ph-caret-left"></i>
-        </button>
-        <span class="cal-month-label" id="cal-month-label"></span>
-        <button class="icon-btn" onclick="calendarNextMonth()" title="Próximo mês">
-          <i class="ph ph-caret-right"></i>
-        </button>
-      </div>
-      <div class="cal-weekdays">
-        <span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span>
-      </div>
-      <div class="cal-grid" id="cal-grid"></div>
-      <div class="cal-legend">
-        <div class="cal-legend-item">
-          <span class="cal-legend-dot cal-legend-trained"></span>
-          <span>Treinado</span>
-        </div>
-        <div class="cal-legend-item">
-          <span class="cal-legend-dot cal-legend-today"></span>
-          <span>Hoje</span>
-        </div>
-        <div class="cal-legend-item">
-          <span class="cal-legend-dot cal-legend-missed"></span>
-          <span>Falhou</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+ 
 <!-- ══ CONFIRM DIALOG ═════════════════════════════════════════════════ -->
 <div id="overlay-confirm" class="overlay">
   <div class="modal" style="max-width:340px">
@@ -430,7 +452,7 @@
     </div>
   </div>
 </div>
-
+ 
 <script src="script.js"></script>
 </body>
 </html>
