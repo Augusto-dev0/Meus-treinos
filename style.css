@@ -651,11 +651,42 @@ body {
   align-items: center; justify-content: center;
   padding: 2rem 1.25rem; gap: .75rem; text-align: center; position: relative; overflow: hidden;
 }
-.finish-icon { font-size: 60px; line-height: 1; }
+/* Troféu dentro de um anel que se completa */
+.finish-badge {
+  position: relative; width: clamp(104px, 30vw, 136px); aspect-ratio: 1/1;
+  display: flex; align-items: center; justify-content: center; margin-bottom: .6rem;
+}
+.finish-badge::before { /* brilho respirando atrás do troféu */
+  content: ''; position: absolute; inset: -34%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(200,240,96,.30) 0%, rgba(200,240,96,0) 66%);
+  opacity: 0;
+}
+.finish-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.ring-track { fill: none; stroke: var(--surface2); stroke-width: 6; }
+.ring-fill  {
+  fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round;
+  stroke-dasharray: 100; stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 6px rgba(200,240,96,.55));
+}
+.finish-icon { position: relative; font-size: clamp(46px, 13vw, 60px); line-height: 1; opacity: 0; }
+.finish-ripple {
+  position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent);
+  opacity: 0; pointer-events: none;
+}
 .finish-title {
   font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,8vw,48px); letter-spacing: 1px; line-height: 1.1;
+  display: flex; flex-direction: column; align-items: center;
 }
-.finish-title span { color: var(--accent); }
+.ft-line { display: block; opacity: 0; }
+.ft-accent { color: var(--accent); }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .ft-accent { /* brilho que atravessa a palavra uma vez e termina no verde normal */
+    background: linear-gradient(100deg, var(--accent) 0 42%, #ffffff 50%, var(--accent) 58% 100%);
+    background-size: 250% 100%; background-position: 100% 0;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+}
 .finish-sub { font-size: var(--fs-sm); color: var(--muted); }
 .finish-stats {
   display: flex; gap: 12px; margin-top: .5rem; flex-wrap: wrap; justify-content: center;
@@ -667,16 +698,58 @@ body {
 }
 .finish-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); line-height: 1; }
 .finish-stat-lbl { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.finish-stat-num { font-variant-numeric: tabular-nums; }
+.finish-close { margin-top: 1.25rem; }
 
-/* Confetti */
-.confetti-wrap { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.confetti-piece {
-  position: absolute; width: 8px; height: 8px; border-radius: 2px;
-  animation: confettiFall 2.5s ease-in forwards;
+/* Confetes (canvas desenhado pelo script) */
+.confetti-wrap { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+/* Conteúdo fica na frente dos confetes para o texto continuar legível */
+.active-finish > :not(.confetti-wrap) { position: relative; z-index: 1; }
+.confetti-wrap canvas { position: absolute; inset: 0; }
+
+/* ── Sequência de animação (só roda com .celebrate; o JS reinicia a cada treino) ── */
+.celebrate .ring-fill     { animation: ringDraw .85s cubic-bezier(.65,0,.25,1) .1s both; }
+.celebrate .finish-icon   { animation: trophyPop .65s cubic-bezier(.34,1.56,.64,1) .55s both; }
+.celebrate .finish-ripple { animation: ripple 1.2s ease-out .75s forwards; }
+.celebrate .finish-ripple.r2 { animation-delay: .95s; }
+.celebrate .finish-badge::before {
+  animation: glowIn .8s ease .7s both, glowBreath 2.8s ease-in-out 1.6s infinite;
 }
-@keyframes confettiFall {
-  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+.celebrate .ft-line         { animation: titleIn .7s cubic-bezier(.2,.8,.2,1) .8s both; }
+.celebrate .ft-line.ft-accent { animation: titleIn .7s cubic-bezier(.2,.8,.2,1) .95s both, shimmer 1.5s ease 1.55s both; }
+.celebrate .finish-sub      { animation: fadeSlide .6s ease 1.1s both; }
+.celebrate .finish-stat     { animation: statPop .55s cubic-bezier(.34,1.56,.64,1) 1.2s both; }
+.celebrate .finish-stat:nth-child(2) { animation-delay: 1.35s; }
+.celebrate .finish-close    { animation: fadeSlide .6s ease 1.6s both; }
+
+@keyframes ringDraw  { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes trophyPop { from { opacity: 0; transform: scale(.2) rotate(-14deg); } to { opacity: 1; transform: none; } }
+@keyframes ripple    { from { opacity: .7; transform: scale(1); } to { opacity: 0; transform: scale(2.3); } }
+@keyframes glowIn    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes glowBreath { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+@keyframes titleIn   {
+  from { opacity: 0; transform: translateY(.45em) scale(.96); letter-spacing: .28em; filter: blur(6px); }
+  to   { opacity: 1; transform: none; letter-spacing: 1px; filter: none; }
+}
+@keyframes shimmer   { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes fadeSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes statPop   { from { opacity: 0; transform: translateY(14px) scale(.85); } to { opacity: 1; transform: none; } }
+
+/* Sem a classe .celebrate (ex.: navegador sem JS) tudo aparece parado */
+.active-finish:not(.celebrate) .finish-icon,
+.active-finish:not(.celebrate) .ft-line { opacity: 1; }
+.active-finish:not(.celebrate) .ring-fill { stroke-dashoffset: 0; }
+
+/* Telas baixas (celular deitado): tudo mais compacto para caber sem cortar */
+@media (max-height: 560px) {
+  .active-finish { gap: .35rem; padding: .75rem 1rem; }
+  .finish-badge { width: 76px; margin-bottom: 0; }
+  .finish-icon { font-size: 34px; }
+  .finish-title { flex-direction: row; gap: .35em; flex-wrap: wrap; justify-content: center; font-size: clamp(26px, 6vw, 32px); }
+  .finish-stats { margin-top: .15rem; }
+  .finish-stat { padding: 6px 14px; }
+  .finish-stat-num { font-size: 22px; }
+  .finish-close { margin-top: .5rem; }
 }
 
 /* ══ MODALS ═══════════════════════════════════════════════════════════════

@@ -1082,6 +1082,7 @@ function startActiveWorkout(day, wi) {
   stopRestTimer();
   clearInterval(elapsedInterval);
 
+  stopConfetti();
   document.getElementById('active-screen').classList.add('open');
   document.getElementById('active-finish').style.display='none';
   document.getElementById('active-ex-view').style.display='flex';
@@ -1181,11 +1182,11 @@ function finishWorkout() {
 
   document.getElementById('finish-stats').innerHTML = `
     <div class="finish-stat">
-      <span class="finish-stat-num">${activeWk.exIds.length}</span>
+      <span class="finish-stat-num" data-count="${activeWk.exIds.length}">${activeWk.exIds.length}</span>
       <span class="finish-stat-lbl">Exercícios</span>
     </div>
     <div class="finish-stat">
-      <span class="finish-stat-num">${timeLabel}</span>
+      <span class="finish-stat-num"${totalSecs < 3600 ? ` data-count="${duration}" data-suffix=" min"` : ''}>${timeLabel}</span>
       <span class="finish-stat-lbl">Tempo</span>
     </div>`;
 
@@ -1195,6 +1196,7 @@ function finishWorkout() {
 }
 
 function closeActiveWorkout() {
+  stopConfetti();
   clearInterval(elapsedInterval);
   stopRestTimer();
   document.getElementById('active-screen').classList.remove('open');
@@ -1235,25 +1237,160 @@ function updateRestUI() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CONFETTI
+   CELEBRAÇÃO DE TREINO CONCLUÍDO
+   Sequência: anel que se completa → troféu → ondas de impacto → confetes
+   (explosão no troféu + canhões nos cantos + chuva leve) → texto, números
+   subindo e botão. Os confetes são desenhados em <canvas> com física
+   (gravidade, resistência do ar, papel girando). Respeita a preferência do
+   sistema por menos movimento.
    ═══════════════════════════════════════════════════════════════════════════ */
+let confettiRAF = 0;
+let confettiCleanup = [];
+
+function stopConfetti() {
+  cancelAnimationFrame(confettiRAF); confettiRAF = 0;
+  confettiCleanup.forEach(fn => { try { fn(); } catch {} });
+  confettiCleanup = [];
+  const wrap = document.getElementById('confetti-wrap');
+  if (wrap) wrap.innerHTML = '';
+}
+
+/* Números do resumo "sobem" de 0 até o valor final. */
+function runCountUp() {
+  const els = [...document.querySelectorAll('#finish-stats .finish-stat-num[data-count]')];
+  if (!els.length) return;
+  const fmt = (el, v) => { el.textContent = v + (el.dataset.suffix || ''); };
+  els.forEach(el => fmt(el, 0));
+  const start = performance.now() + 1250, dur = 900;
+  let raf = 0;
+  const step = now => {
+    const k = Math.min(1, Math.max(0, (now - start) / dur));
+    const e = 1 - Math.pow(1 - k, 3);
+    els.forEach(el => fmt(el, Math.round(+el.dataset.count * e)));
+    if (k < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+  confettiCleanup.push(() => { cancelAnimationFrame(raf); els.forEach(el => fmt(el, el.dataset.count)); });
+}
+
 function spawnConfetti() {
-  const wrap=document.getElementById('confetti-wrap');
-  wrap.innerHTML='';
-  const colors=['#c8f060','#3ecfb0','#ff5f5f','#facc15','#60a5fa','#f472b6'];
-  for(let i=0;i<60;i++){
-    const el=document.createElement('div');
-    el.className='confetti-piece';
-    el.style.cssText=`
-      left:${Math.random()*100}%;
-      background:${colors[i%colors.length]};
-      animation-delay:${Math.random()*1.2}s;
-      animation-duration:${1.8+Math.random()*1.5}s;
-      transform:rotate(${Math.random()*360}deg);
-      border-radius:${Math.random()>0.5?'50%':'2px'};
-    `;
-    wrap.appendChild(el);
+  stopConfetti();
+  const fin  = document.getElementById('active-finish');
+  const wrap = document.getElementById('confetti-wrap');
+  if (!fin || !wrap) return;
+
+  /* reinicia as animações CSS da tela de conclusão */
+  fin.classList.remove('celebrate'); void fin.offsetWidth; fin.classList.add('celebrate');
+
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+
+  runCountUp();
+
+  /* vibração curta de "vitória" (Android; iPhone não suporta) */
+  const vib = setTimeout(() => {
+    if (navigator.vibrate) { try { navigator.vibrate([40, 50, 40, 50, 140]); } catch {} }
+  }, 750);
+  confettiCleanup.push(() => clearTimeout(vib));
+
+  const canvas = document.createElement('canvas');
+  canvas.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let W = 0, H = 0, S = 1;
+  const fit = () => {
+    const r = wrap.getBoundingClientRect();
+    W = r.width; H = r.height;
+    S = Math.min(1.35, Math.max(.75, Math.min(W, H) / 420)); /* escala conforme a tela */
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  fit();
+  window.addEventListener('resize', fit);
+  confettiCleanup.push(() => window.removeEventListener('resize', fit));
+
+  const COLORS = ['#c8f060', '#c8f060', '#3ecfb0', '#22d3ee', '#facc15', '#f472b6', '#fb923c', '#f2efe9'];
+  const SHAPES = ['rect', 'rect', 'rect', 'circle', 'ribbon', 'star'];
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = arr => arr[(Math.random() * arr.length) | 0];
+  const parts = [];
+
+  function add(x, y, speed, angle, extra) {
+    parts.push(Object.assign({
+      x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      rot: rand(0, 6.283), vr: rand(-9, 9), flip: rand(0, 6.283), vf: rand(6, 14),
+      w: rand(6, 11) * S, h: rand(3.5, 6.5) * S, color: pick(COLORS), shape: pick(SHAPES),
+      sway: rand(0, 6.283), swayAmp: rand(10, 30) * S, age: 0, life: rand(2.6, 4.2)
+    }, extra));
   }
+  function burst() {
+    const b = document.getElementById('finish-badge').getBoundingClientRect();
+    const r = wrap.getBoundingClientRect();
+    const ox = b.left - r.left + b.width / 2, oy = b.top - r.top + b.height / 2;
+    for (let i = 0; i < 80; i++) add(ox, oy, rand(380, 980) * S, rand(0, 6.283));
+  }
+  function cannon(side) {
+    const x = side === 0 ? W * .03 : W * .97, y = H * 1.02;
+    const base = side === 0 ? -1.13 : -2.01; /* ~ -65° e -115° */
+    for (let i = 0; i < 42; i++) add(x, y, rand(1250, 1950) * S, base + rand(-.2, .2));
+  }
+  function rain(n) {
+    for (let i = 0; i < n; i++) add(rand(0, W), -14, rand(40, 120) * S, 1.5708 + rand(-.3, .3), { life: rand(3, 4.6) });
+  }
+
+  const events = [{ t: 750, fn: burst }, { t: 1000, fn: () => cannon(0) }, { t: 1000, fn: () => cannon(1) }];
+  for (let i = 0; i < 14; i++) events.push({ t: 1150 + i * 110, fn: () => rain(4) });
+
+  const G = 520, DRAG = 2.6; /* velocidade terminal ≈ G/DRAG ≈ 200 px/s: papel flutuando */
+  function draw(p) {
+    const fade = Math.min(1, Math.max(0, (p.life - p.age) / .6));
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.globalAlpha = fade; ctx.fillStyle = p.color;
+    if (p.shape === 'rect') {
+      ctx.scale(1, Math.cos(p.flip)); ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    } else if (p.shape === 'ribbon') {
+      ctx.scale(1, Math.cos(p.flip)); ctx.fillRect(-p.w * .9, -S, p.w * 1.8, 2 * S);
+    } else if (p.shape === 'circle') {
+      ctx.beginPath(); ctx.arc(0, 0, p.h * .75, 0, 6.283); ctx.fill();
+    } else { /* estrela de 4 pontas */
+      const R = p.w * .6, r = R * .38;
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const rad = i % 2 ? r : R, a = i * Math.PI / 4;
+        ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  let t0 = null, last = 0;
+  const frame = now => {
+    if (t0 === null) { t0 = now; last = now; }
+    const el = now - t0;
+    const dt = Math.min(.033, Math.max(0, (now - last) / 1000)); last = now;
+    while (events.length && events[0].t <= el) events.shift().fn();
+
+    ctx.clearRect(0, 0, W, H);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.age += dt;
+      p.vx -= p.vx * DRAG * dt;
+      p.vy += (G * S - p.vy * DRAG) * dt;
+      p.sway += 3 * dt;
+      p.x += (p.vx + Math.sin(p.sway) * p.swayAmp) * dt;
+      p.y += p.vy * dt;
+      p.rot += p.vr * dt; p.flip += p.vf * dt;
+      if (p.age > p.life || p.y > H + 30) { parts.splice(i, 1); continue; }
+      draw(p);
+    }
+    if (events.length || parts.length) confettiRAF = requestAnimationFrame(frame);
+    else { confettiRAF = 0; canvas.remove(); }
+  };
+  confettiRAF = requestAnimationFrame(frame);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

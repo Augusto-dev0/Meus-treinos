@@ -43,7 +43,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Transição lateral ao avançar/voltar entre exercícios
 - Barra de progresso e cronômetro em tempo real
 - Timer de descanso rápido embutido (30s / 1min / 1m30)
-- Ao concluir, salva automaticamente no histórico com duração total
+- Ao concluir, salva automaticamente no histórico com duração total e mostra uma **animação de conclusão**: anel que se completa, troféu, ondas de impacto, confetes (explosão no troféu, canhões nos cantos e chuva leve), título com brilho e números do resumo que sobem contando. Respeita a preferência de menos movimento do sistema
 
 ### Histórico
 
@@ -208,9 +208,10 @@ Depois de um novo deploy, o app instalado pega a versão nova sozinho. Se por al
 | Tecnologia         | Uso                                                             |
 | ------------------ | --------------------------------------------------------------- |
 | HTML5              | Estrutura, modais, tela de treino ativo                         |
-| CSS3               | Variáveis, animações, layout responsivo, confetti               |
+| CSS3               | Variáveis, animações, layout responsivo                         |
 | JavaScript ES6+    | Lógica, localStorage, drag & drop, Web Audio, Notifications API |
-| SVG inline         | Ícones de grupos musculares e anel do timer                     |
+| SVG inline         | Ícones de grupos musculares, anel do timer e anel de conclusão  |
+| Canvas 2D          | Confetes da tela de conclusão (com física)                      |
 | Phosphor Icons     | Ícones da interface                                             |
 | Google Fonts       | Bebas Neue (títulos) + DM Sans (corpo)                          |
 | Web App Manifest   | Instalação como PWA                                             |
@@ -267,7 +268,7 @@ O app também pode ser instalado e usado em **qualquer orientação** (retrato o
 - Tipografia: **Bebas Neue** (títulos) + **DM Sans** (corpo)
 - Ícones: **Phosphor Icons** e SVGs próprios para os grupos musculares, sem emojis
 - Animações com `cubic-bezier` e `fadeUp`
-- Confetti CSS puro na tela de conclusão de treino
+- Animação de conclusão com confetes em canvas, anel de progresso em SVG e keyframes em CSS
 
 ---
 

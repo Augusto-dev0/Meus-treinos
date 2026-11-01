@@ -328,12 +328,19 @@
 
   <!-- Finish screen -->
   <div id="active-finish" class="active-finish" style="display:none">
-    <div class="confetti-wrap" id="confetti-wrap"></div>
-    <div class="finish-icon"><i class="ph-fill ph-trophy"></i></div>
-    <h2 class="finish-title">TREINO<br><span>CONCLUÍDO!</span></h2>
+    <div class="confetti-wrap" id="confetti-wrap" aria-hidden="true"></div>
+    <div class="finish-badge" id="finish-badge">
+      <span class="finish-ripple"></span><span class="finish-ripple r2"></span>
+      <svg class="finish-ring" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+        <circle class="ring-track" cx="60" cy="60" r="54"/>
+        <circle class="ring-fill" cx="60" cy="60" r="54" pathLength="100"/>
+      </svg>
+      <div class="finish-icon"><i class="ph-fill ph-trophy"></i></div>
+    </div>
+    <h2 class="finish-title"><span class="ft-line">TREINO</span> <span class="ft-line ft-accent">CONCLUÍDO!</span></h2>
     <p class="finish-sub" id="finish-sub">Excelente trabalho!</p>
     <div class="finish-stats" id="finish-stats"></div>
-    <button class="tbtn primary" style="margin-top:1.5rem" onclick="closeActiveWorkout()">
+    <button class="tbtn primary finish-close" onclick="closeActiveWorkout()">
       <i class="ph ph-check"></i> Fechar
     </button>
   </div>
