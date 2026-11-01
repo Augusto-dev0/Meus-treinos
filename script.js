@@ -738,7 +738,7 @@ function renderDayContent() {
   const isRest   = restDays.has(dateKey(dayDate));
   const hdr = `<div class="day-header">
     <div class="day-header-title">
-      <div class="day-header-name">${DAYS_FULL[selDay]}${selDay===WEEKDAY?' <span>(hoje)</span>':''}</div>
+      <h3 class="day-header-name">${DAYS_FULL[selDay]}${selDay===WEEKDAY?' <span>(hoje)</span>':''}</h3>
       <div class="day-header-date">${dayDate.getDate()} de ${MONTHS_FULL[dayDate.getMonth()].toLowerCase()}</div>
     </div>
     <button class="rest-toggle ${isRest?'active':''}" type="button" onclick="toggleRestDayForSelected()"

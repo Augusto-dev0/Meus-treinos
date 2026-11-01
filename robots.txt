@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://meus-treinos-dun.vercel.app/sitemap.xml

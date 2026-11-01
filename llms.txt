@@ -1,0 +1,33 @@
+# Meus Treinos
+
+> App web gratuito e sem cadastro para organizar treinos por dia da semana, registrar o histórico em um calendário, manter uma biblioteca pessoal de exercícios e usar um timer de descanso. Funciona offline (PWA) e pode ser instalado no celular. Todos os dados ficam salvos apenas no navegador do usuário (localStorage); nada é enviado a servidores.
+
+O site é um aplicativo de página única: existe uma única URL pública, e as áreas (Treinos, Histórico, Biblioteca, Timer) são abas dentro dela, sem URLs próprias. O conteúdo exibido depende dos dados que cada pessoa cadastra no próprio aparelho. Idioma: português do Brasil.
+
+## Site
+
+- [Meus Treinos (app)](https://meus-treinos-dun.vercel.app/): página principal e única página pública do app
+- [Sitemap](https://meus-treinos-dun.vercel.app/sitemap.xml): lista de URLs indexáveis
+- [Manifest PWA](https://meus-treinos-dun.vercel.app/manifest.json): nome, ícones e configuração de instalação
+
+## Funcionalidades
+
+- Treinos por dia da semana, com copiar e colar treino entre dias e marcação de dias de descanso
+- Modo treino ativo, exercício por exercício, com cronômetro e timer de descanso (30s, 1min, 1m30)
+- Histórico de treinos concluídos com detalhes, edição e calendário mensal (treinado, hoje, perdido, descanso)
+- Sequência (streak) que conta apenas dias úteis com treino programado
+- Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios, filtráveis por categoria, grupo muscular e equipamento
+- Aviso de fim de cronômetro por som, vibração (onde suportado), flash na tela e notificação do sistema
+
+## Código e documentação
+
+- [Repositório no GitHub](https://github.com/Augusto-dev0/Meus-treinos): código-fonte (HTML, CSS e JavaScript puros, sem dependências de build)
+- [README](https://github.com/Augusto-dev0/Meus-treinos/blob/main/README.md): descrição completa das funcionalidades, estrutura do projeto e armazenamento de dados
+
+## Autor
+
+- Luiz Augusto: [GitHub](https://github.com/Augusto-dev0), [LinkedIn](https://linkedin.com/in/luiz-augusto7x), [Instagram](https://www.instagram.com/luiz.augusto7x/)
+
+## Optional
+
+- [Licença](https://github.com/Augusto-dev0/Meus-treinos/blob/main/LICENSE): licença proprietária; o uso, a cópia ou a redistribuição do código dependem de autorização do autor

@@ -6,7 +6,92 @@
 <meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Meus Treinos</title>
+<title>Meus Treinos | App de treino, histórico e timer de descanso</title>
+<meta name="description" content="App gratuito para organizar treinos por dia da semana, acompanhar o histórico no calendário e usar timer de descanso. Funciona offline e instala no celular.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Luiz Augusto">
+<meta name="application-name" content="Meus Treinos">
+<link rel="canonical" href="https://meus-treinos-dun.vercel.app/">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Meus Treinos">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Meus Treinos | App de treino, histórico e timer de descanso">
+<meta property="og:description" content="App gratuito para organizar treinos por dia da semana, acompanhar o histórico no calendário e usar timer de descanso. Funciona offline e instala no celular.">
+<meta property="og:url" content="https://meus-treinos-dun.vercel.app/">
+<meta property="og:image" content="https://meus-treinos-dun.vercel.app/imagens/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Meus Treinos | App de treino, histórico e timer de descanso">
+<meta name="twitter:description" content="App gratuito para organizar treinos por dia da semana, acompanhar o histórico no calendário e usar timer de descanso. Funciona offline e instala no celular.">
+<meta name="twitter:image" content="https://meus-treinos-dun.vercel.app/imagens/icon-512.png">
+
+<!-- Dados estruturados (Schema.org / JSON-LD) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://meus-treinos-dun.vercel.app/#website",
+      "url": "https://meus-treinos-dun.vercel.app/",
+      "name": "Meus Treinos",
+      "description": "App gratuito para organizar treinos por dia da semana, acompanhar o histórico no calendário e usar timer de descanso. Funciona offline e instala no celular.",
+      "inLanguage": "pt-BR",
+      "publisher": {
+        "@id": "https://meus-treinos-dun.vercel.app/#autor"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://meus-treinos-dun.vercel.app/#app",
+      "name": "Meus Treinos",
+      "url": "https://meus-treinos-dun.vercel.app/",
+      "description": "App gratuito para organizar treinos por dia da semana, acompanhar o histórico no calendário e usar timer de descanso. Funciona offline e instala no celular.",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Qualquer sistema com navegador web (Android, iOS, Windows, macOS, Linux)",
+      "browserRequirements": "Requer JavaScript e um navegador moderno",
+      "inLanguage": "pt-BR",
+      "isAccessibleForFree": true,
+      "image": "https://meus-treinos-dun.vercel.app/imagens/icon-512.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "BRL"
+      },
+      "featureList": [
+        "Treinos organizados por dia da semana, com copiar e colar entre dias",
+        "Modo treino ativo com cronômetro e timer de descanso",
+        "Histórico com calendário de dias treinados, perdidos e de descanso",
+        "Sequência de treinos considerando apenas dias úteis programados",
+        "Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios",
+        "Aviso de fim de cronômetro por som, vibração, flash e notificação",
+        "Funciona offline e pode ser instalado como app (PWA)",
+        "Dados salvos apenas no navegador, sem cadastro"
+      ],
+      "isPartOf": {
+        "@id": "https://meus-treinos-dun.vercel.app/#website"
+      },
+      "author": {
+        "@id": "https://meus-treinos-dun.vercel.app/#autor"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://meus-treinos-dun.vercel.app/#autor",
+      "name": "Luiz Augusto",
+      "url": "https://github.com/Augusto-dev0",
+      "sameAs": [
+        "https://github.com/Augusto-dev0",
+        "https://linkedin.com/in/luiz-augusto7x",
+        "https://www.instagram.com/luiz.augusto7x/"
+      ]
+    }
+  ]
+}
+</script>
 <link rel="icon" href="imagens/favicon.ico">
 <link rel="apple-touch-icon" href="imagens/icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -26,7 +111,7 @@
         <i class="ph ph-lightning"></i>
       </div>
       <div>
-        <h1>MEUS<span>TREINOS</span></h1>
+        <h1 aria-label="Meus Treinos">MEUS<span>TREINOS</span></h1>
         <p class="header-sub" id="today-label">carregando...</p>
       </div>
     </div>
@@ -34,7 +119,7 @@
   </header>
 
   <!-- ══ TABS ════════════════════════════════════════════════════════════ -->
-  <nav class="tabs">
+  <nav class="tabs" aria-label="Seções do app">
     <button class="tab active" data-tab="treinos">
       <i class="ph ph-barbell"></i><span>Treinos</span>
     </button>
@@ -49,18 +134,35 @@
     </button>
   </nav>
 
+  <main id="conteudo">
+
+  <noscript>
+    <section class="noscript-info">
+      <h2>Sobre o Meus Treinos</h2>
+      <p>Meus Treinos é um app gratuito para organizar treinos por dia da semana, acompanhar o histórico em um calendário, montar uma biblioteca pessoal de exercícios e usar um timer de descanso. Funciona offline e pode ser instalado no celular como app.</p>
+      <ul>
+        <li>Treinos por dia da semana, com copiar e colar entre dias</li>
+        <li>Histórico com calendário de dias treinados, perdidos e de descanso</li>
+        <li>Catálogo com mais de 5 mil variações de exercícios</li>
+        <li>Timer de descanso com aviso sonoro, vibração e notificação</li>
+      </ul>
+      <p>Ative o JavaScript no navegador para usar o app. Seus dados ficam salvos apenas no seu dispositivo.</p>
+    </section>
+  </noscript>
+
   <!-- ══ SEÇÃO: TREINOS ══════════════════════════════════════════════════ -->
-  <section id="sec-treinos" class="section active">
+  <section id="sec-treinos" class="section active" aria-labelledby="h-treinos">
+    <h2 id="h-treinos" class="sr-only">Treinos da semana</h2>
     <div id="checklist-card"></div>
     <div class="day-strip" id="day-strip"></div>
     <div id="day-content"></div>
   </section>
 
   <!-- ══ SEÇÃO: HISTÓRICO ════════════════════════════════════════════════ -->
-  <section id="sec-historico" class="section">
+  <section id="sec-historico" class="section" aria-labelledby="h-historico">
     <div class="hist-header">
       <div>
-        <h2 class="section-title">Histórico</h2>
+        <h2 id="h-historico" class="section-title">Histórico</h2>
         <p class="section-sub">Seus treinos concluídos</p>
       </div>
       <div class="hist-header-right">
@@ -83,10 +185,10 @@
   </section>
 
   <!-- ══ SEÇÃO: BIBLIOTECA ═══════════════════════════════════════════════ -->
-  <section id="sec-biblioteca" class="section">
+  <section id="sec-biblioteca" class="section" aria-labelledby="h-biblioteca">
     <div class="lib-toolbar">
       <div>
-        <h2 class="section-title">Biblioteca</h2>
+        <h2 id="h-biblioteca" class="section-title">Biblioteca</h2>
         <p class="section-sub" id="lib-section-sub">Seus exercícios pessoais</p>
       </div>
       <div id="lib-toolbar-actions">
@@ -126,7 +228,8 @@
   </section>
 
   <!-- ══ SEÇÃO: TIMER ════════════════════════════════════════════════════ -->
-  <section id="sec-timer" class="section">
+  <section id="sec-timer" class="section" aria-labelledby="h-timer">
+    <h2 id="h-timer" class="sr-only">Cronômetro de descanso</h2>
     <div class="timer-wrap">
       <div class="ring-wrap">
         <svg viewBox="0 0 200 200" width="200" height="200">
@@ -153,10 +256,12 @@
     </div>
   </section>
 
+  </main>
+
 </div><!-- .app -->
 
 <!-- ══ BOTTOM NAV ══════════════════════════════════════════════════════ -->
-<nav class="bottom-nav">
+<nav class="bottom-nav" aria-label="Seções do app (celular)">
   <button class="bnav-btn active" data-tab="treinos">
     <i class="ph ph-barbell"></i><span>Treinos</span>
   </button>

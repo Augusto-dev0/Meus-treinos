@@ -134,6 +134,10 @@ TreinoSite/
 ├── script.js           # Lógica completa do app
 ├── manifest.json       # Configuração PWA
 ├── sw.js               # Service Worker (cache offline)
+├── robots.txt          # Regras de rastreamento + endereço do sitemap
+├── sitemap.xml         # URLs indexáveis do site
+├── llms.txt            # Resumo do site para IAs e agentes
+├── vercel.json         # Cabeçalhos HTTP (charset de robots.txt e llms.txt)
 ├── README.md
 ├── LICENSE
 └── imagens/
@@ -141,6 +145,38 @@ TreinoSite/
     ├── icon-192.png    # Ícone PWA (Android)
     └── icon-512.png    # Ícone PWA (splash screen)
 ```
+
+---
+
+## SEO e descoberta
+
+O app é de **página única**: existe uma só URL pública, e as áreas (Treinos, Histórico, Biblioteca, Timer) são abas dentro dela. Por isso o sitemap tem uma URL e há um único conjunto de metadados.
+
+| Item                           | Onde                                                                                                                                                                                                           |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `robots.txt`                   | Permite o rastreamento de todo o site e aponta para o sitemap                                                                                                                                                  |
+| `sitemap.xml`                  | Lista a URL principal (atualize o `lastmod` quando houver mudanças relevantes)                                                                                                                                 |
+| `<link rel="canonical">`       | Define a URL principal em `index.html`                                                                                                                                                                         |
+| `<title>` e `meta description` | Texto específico do app, dentro dos tamanhos recomendados (59 e 156 caracteres)                                                                                                                                |
+| Open Graph e Twitter Card      | Prévia ao compartilhar o link                                                                                                                                                                                  |
+| Schema.org (JSON-LD)           | `WebSite`, `WebApplication` e `Person` ligados por `@id`, em `index.html`                                                                                                                                      |
+| HTML semântico                 | Um `h1`, `h2` por seção (os de Treinos e Timer são só para leitores de tela), `h3` no dia, `header`, `nav`, `main` e `section`. Há um bloco `noscript` com a descrição do app para quem não executa JavaScript |
+| `llms.txt`                     | Resumo do site, funcionalidades e links importantes para IAs e agentes                                                                                                                                         |
+
+### Conferir depois de publicar
+
+No PowerShell (troque o endereço se usar domínio próprio):
+
+```powershell
+$base = "https://meus-treinos-dun.vercel.app"
+"/", "/robots.txt", "/sitemap.xml", "/llms.txt", "/manifest.json" | ForEach-Object {
+  $r = Invoke-WebRequest "$base$_" -UseBasicParsing
+  "{0}  {1}  {2}" -f $r.StatusCode, $_, $r.Headers["Content-Type"]
+}
+(Invoke-WebRequest "$base/" -UseBasicParsing).Content | Select-String 'canonical|application/ld\+json|name="description"'
+```
+
+Todos devem responder `200`. Depois, valide o JSON-LD em [validator.schema.org](https://validator.schema.org/) e no [Teste de Resultados Ricos do Google](https://search.google.com/test/rich-results), e envie o `sitemap.xml` no Google Search Console.
 
 ---
 
