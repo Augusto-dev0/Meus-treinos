@@ -27,7 +27,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Organize treinos por dia da semana (Segunda a Domingo)
 - Crie quantos treinos quiser por dia
 - Monte cada treino com exercícios da sua biblioteca pessoal
-- Reordene os exercícios com **drag & drop**
+- Reordene os exercícios arrastando pela alça (mouse, toque ou caneta) ou com os botões de subir e descer, que funcionam em qualquer aparelho, inclusive no celular
 - **Copie um treino e cole em outro dia** (ou em vários) sem recriar do zero
 - **Marque dias de descanso**: escolha o dia na faixa Seg–Dom e toque em _Marcar descanso_. O dia fica identificado com uma lua, aparece no calendário do histórico e **não quebra a sequência**. Se você treinar naquele dia, a marcação é removida sozinha; e um dia em que você já treinou não pode ser marcado como descanso
 

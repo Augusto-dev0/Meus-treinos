@@ -190,7 +190,6 @@ let wkDay=null, wkEditIdx=null, wkSel=[], wkFilter='Todos';
 /* Exercise editor */
 let exEditId = null;
 /* Drag & drop */
-let dragSrcIdx = null;
 
 /* Timer (rest) */
 let tTotal=60, tRemain=60, tRunning=false, tInterval=null;
@@ -930,37 +929,129 @@ function renderWkSelected() {
   if(!wkSel.length){wrap.innerHTML='<div class="wk-empty-sel">Nenhum exercício selecionado.</div>';return;}
   wrap.innerHTML=wkSel.map((id,pos)=>{
     const ex=library.find(e=>e.id===id); if(!ex) return '';
-    return `<div class="sel-item" draggable="true"
-        ondragstart="dragStart(${pos})" ondragover="dragOver(event,${pos})"
-        ondrop="dragDrop(event,${pos})" ondragend="dragEnd()"
-        data-pos="${pos}">
-      <i class="ph ph-dots-six-vertical drag-handle"></i>
+    const last = wkSel.length - 1;
+    return `<div class="sel-item" data-pos="${pos}"
+        onpointerdown="wkPointerDown(event,${pos})" onpointermove="wkPointerMove(event)"
+        onpointerup="wkPointerUp(event)" onpointercancel="wkPointerCancel(event)">
+      <i class="ph ph-dots-six-vertical drag-handle" aria-hidden="true"></i>
       <span class="sel-ico">${muscleIcon(ex.muscle, ex.color)}</span>
       <span class="sel-name">${ex.name}</span>
       ${ex.sets?`<span class="sel-sets">${ex.sets}</span>`:''}
-      <button class="sel-remove" onclick="removeWkSel(${pos})"><i class="ph ph-x"></i></button>
+      <button class="sel-move sel-up" ${pos===0?'disabled':''} onclick="moveWkSel(${pos},-1)"
+        title="Subir" aria-label="Mover ${ex.name} para cima"><i class="ph-bold ph-caret-up"></i></button>
+      <button class="sel-move sel-down" ${pos===last?'disabled':''} onclick="moveWkSel(${pos},1)"
+        title="Descer" aria-label="Mover ${ex.name} para baixo"><i class="ph-bold ph-caret-down"></i></button>
+      <button class="sel-remove" onclick="removeWkSel(${pos})" title="Remover" aria-label="Remover ${ex.name}"><i class="ph ph-x"></i></button>
     </div>`;
   }).join('');
 }
 
 function removeWkSel(pos){wkSel.splice(pos,1);renderWkPicker();renderWkSelected();}
 
-function dragStart(i){dragSrcIdx=i;}
-function dragOver(e,i){
-  e.preventDefault();
-  document.querySelectorAll('.sel-item').forEach((el,idx)=>el.classList.toggle('drag-over',idx===i));
+/* ── Reordenar os exercícios do treino ────────────────────────────────────
+   O arrastar nativo do HTML5 (draggable/ondrag*) não dispara em telas de
+   toque, por isso a ordenação usa Pointer Events (mouse, toque e caneta) e
+   os botões de subir/descer funcionam em qualquer aparelho.
+   - Mouse: arraste a linha inteira.
+   - Toque/caneta: arraste pela alça (⋮⋮); o resto da linha continua
+     rolando a lista normalmente. */
+function moveWkSel(pos, dir) {
+  const to = pos + dir;
+  if (to < 0 || to >= wkSel.length) return;
+  const [m] = wkSel.splice(pos, 1);
+  wkSel.splice(to, 0, m);
+  renderWkSelected();
+  const btn = document.querySelector(`.sel-item[data-pos="${to}"] .${dir < 0 ? 'sel-up' : 'sel-down'}`);
+  if (btn && !btn.disabled) btn.focus({ preventScroll: true });
 }
-function dragDrop(e,i){
+
+let wkDrag = null;
+function wkScroller(el) {
+  for (let n = el; n && n !== document.body; n = n.parentElement) {
+    const oy = getComputedStyle(n).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+  }
+  return el;
+}
+function wkPointerDown(e, pos) {
+  if (wkDrag) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  if (e.target.closest('.sel-remove, .sel-move')) return;
+  if (e.pointerType !== 'mouse' && !e.target.closest('.drag-handle')) return;
+  const item  = e.currentTarget;
+  const list  = item.parentElement;
+  const items = [...list.querySelectorAll('.sel-item')];
+  const gap   = items.length > 1 ? items[1].offsetTop - items[0].offsetTop - items[0].offsetHeight : 6;
+  const scroller = wkScroller(list);
+  wkDrag = {
+    pos, over: pos, item, list, items, scroller, pid: e.pointerId,
+    startY: e.clientY, lastY: e.clientY, scroll0: scroller.scrollTop,
+    step: item.offsetHeight + gap,
+    centers: items.map(el => el.offsetTop + el.offsetHeight / 2),
+    raf: 0
+  };
+  try { item.setPointerCapture(e.pointerId); } catch {}
   e.preventDefault();
-  if(dragSrcIdx===null||dragSrcIdx===i) return;
-  const [moved]=wkSel.splice(dragSrcIdx,1);
-  wkSel.splice(i,0,moved);
+  item.classList.add('dragging-live');
+  list.classList.add('is-sorting');
+  if (navigator.vibrate) { try { navigator.vibrate(12); } catch {} }
+}
+function wkDragUpdate() {
+  const d = wkDrag; if (!d) return;
+  const dy = d.lastY - d.startY + (d.scroller.scrollTop - d.scroll0);
+  d.item.style.transform = `translateY(${dy}px)`;
+  const c = d.centers[d.pos] + dy;
+  let over = d.pos, best = Infinity;
+  d.centers.forEach((cy, i) => { const dist = Math.abs(cy - c); if (dist < best) { best = dist; over = i; } });
+  d.over = over;
+  d.items.forEach((el, i) => {
+    if (i === d.pos) return;
+    let shift = 0;
+    if (d.pos < over && i > d.pos && i <= over) shift = -d.step;
+    else if (d.pos > over && i < d.pos && i >= over) shift = d.step;
+    el.style.transform = shift ? `translateY(${shift}px)` : '';
+  });
+}
+function wkAutoScroll() {
+  const d = wkDrag; if (!d || d.raf) return;
+  const tick = () => {
+    d.raf = 0;
+    if (wkDrag !== d) return;
+    const r = d.scroller.getBoundingClientRect();
+    const edge = 36; let v = 0;
+    if (d.lastY < r.top + edge)         v = -Math.ceil((r.top + edge - d.lastY) / 6);
+    else if (d.lastY > r.bottom - edge) v =  Math.ceil((d.lastY - (r.bottom - edge)) / 6);
+    if (v) {
+      const before = d.scroller.scrollTop;
+      d.scroller.scrollTop += v;
+      if (d.scroller.scrollTop !== before) wkDragUpdate();
+      d.raf = requestAnimationFrame(tick);
+    }
+  };
+  d.raf = requestAnimationFrame(tick);
+}
+function wkPointerMove(e) {
+  const d = wkDrag;
+  if (!d || e.pointerId !== d.pid) return;
+  e.preventDefault();
+  d.lastY = e.clientY;
+  wkDragUpdate();
+  wkAutoScroll();
+}
+function wkPointerEnd(e, commit) {
+  const d = wkDrag;
+  if (!d || e.pointerId !== d.pid) return;
+  cancelAnimationFrame(d.raf);
+  wkDrag = null;
+  try { d.item.releasePointerCapture(e.pointerId); } catch {}
+  if (commit && d.over !== d.pos) {
+    const [m] = wkSel.splice(d.pos, 1);
+    wkSel.splice(d.over, 0, m);
+  }
   renderWkSelected(); renderWkPicker();
 }
-function dragEnd(){
-  dragSrcIdx=null;
-  document.querySelectorAll('.sel-item').forEach(el=>el.classList.remove('drag-over','dragging'));
-}
+function wkPointerUp(e)     { wkPointerEnd(e, true); }
+function wkPointerCancel(e) { wkPointerEnd(e, false); }
 
 function saveWorkout() {
   const name=document.getElementById('wk-name').value.trim();

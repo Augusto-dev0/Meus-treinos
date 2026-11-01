@@ -794,13 +794,30 @@ select.input { cursor: pointer; }
   display: flex; align-items: center; gap: 8px; padding: 8px 10px;
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--r-sm); font-size: var(--fs-sm); flex-shrink: 0;
-  cursor: grab; transition: border-color .13s, box-shadow .13s;
-  user-select: none;
+  cursor: grab; transition: border-color .13s, box-shadow .13s, transform .16s ease;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
 .sel-item:active { cursor: grabbing; }
-.sel-item.drag-over { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.sel-item.dragging  { opacity: .4; }
-.drag-handle { color: var(--muted); font-size: 16px; flex-shrink: 0; cursor: grab; }
+/* Item sendo arrastado: segue o dedo/mouse; os demais abrem espaço */
+.sel-item.dragging-live {
+  position: relative; z-index: 5; transition: none; cursor: grabbing;
+  background: var(--surface2); border-color: var(--accent);
+  box-shadow: 0 8px 22px rgba(0,0,0,.5), 0 0 0 1px var(--accent);
+}
+.wk-selected-list.is-sorting { overscroll-behavior: contain; }
+/* Alça: área de toque maior e sem rolagem da página ao arrastar por ela */
+.drag-handle {
+  color: var(--muted); font-size: 18px; flex-shrink: 0; cursor: grab;
+  touch-action: none; padding: 10px 6px; margin: -10px -6px;
+}
+.sel-move {
+  width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 5px;
+  background: transparent; color: var(--muted); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: all .13s;
+}
+.sel-move:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+.sel-move:disabled { opacity: .28; cursor: default; }
 .sel-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sel-sets { font-size: 10px; color: var(--accent); white-space: nowrap; }
 .sel-remove {
@@ -1289,3 +1306,17 @@ button.cal-cell:focus-visible span { outline: 2px solid var(--accent); outline-o
 .noscript-info { padding: 1.25rem 0; color: var(--text); line-height: 1.6; }
 .noscript-info h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; margin-bottom: 8px; }
 .noscript-info ul { margin: 10px 0 10px 20px; }
+
+
+/* ── Ordenar treino: ajustes para toque e telas pequenas ─────────────────── */
+@media (pointer: coarse) {
+  .sel-item { gap: 6px; padding: 8px; }
+  .sel-move, .sel-remove { width: 34px; height: 34px; font-size: 14px; }
+  .drag-handle { font-size: 20px; padding: 12px 8px; margin: -12px -8px; }
+}
+@media (max-width: 420px) {
+  .sel-sets { display: none; }
+}
+@media (max-width: 600px) {
+  .wk-selected-col { max-height: 30vh; }
+}
