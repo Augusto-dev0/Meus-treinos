@@ -18,6 +18,7 @@ O site é um aplicativo de página única: existe uma única URL pública, e as 
 - Sequência (streak) que conta apenas dias úteis com treino programado
 - Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios, filtráveis por categoria, grupo muscular e equipamento
 - Aviso de fim de cronômetro por som, vibração (onde suportado), flash na tela e notificação do sistema
+- Backup dos dados: exportar e importar um arquivo .json (com validação e opção de desfazer a importação)
 
 ## Código e documentação
 

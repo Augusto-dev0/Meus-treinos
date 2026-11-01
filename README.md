@@ -110,6 +110,17 @@ Disparado em todo cronômetro do site (Timer avulso e descanso do treino ativo),
 - Mensagens rápidas (toast) para confirmar ações, como copiar e colar treino
 - Respeita a preferência do sistema por menos movimento (`prefers-reduced-motion`)
 
+### Backup dos dados
+
+Como tudo fica no `localStorage`, limpar o navegador, desinstalar o app ou trocar de celular apaga os treinos. O ícone de banco de dados no topo abre o painel de backup:
+
+- **Baixar backup**: gera `meus-treinos-backup-AAAA-MM-DD.json` com biblioteca, treinos, histórico, dias de descanso e a data do primeiro treino
+- **Compartilhar**: em aparelhos que suportam, envia o arquivo direto pela folha de compartilhamento (WhatsApp, e-mail, Drive...)
+- **Importar backup**: lê o arquivo, mostra um resumo (arquivo × dados atuais) e só substitui os dados depois da sua confirmação
+- **Desfazer última importação**: antes de importar, o app guarda uma cópia dos dados atuais e permite voltar atrás
+- **Aviso de backup**: um ponto laranja no ícone aparece quando não há backup nos últimos 30 dias
+- **Segurança**: o arquivo importado é validado e higienizado (tipos, tamanhos, cores, ids e caracteres que poderiam virar código HTML são removidos), então um arquivo adulterado não consegue injetar nada no app. Arquivos de outro app, corrompidos ou de versão mais nova são recusados com uma mensagem clara
+
 ### Checklist de primeiros passos
 
 - Card guia o usuário novo pelos 3 passos iniciais
@@ -231,6 +242,8 @@ Todos os dados ficam no `localStorage` do browser — nenhum dado é enviado a s
 | `mt-checklist-dismissed` | Se o checklist foi dispensado                                                                                                       |
 | `mt-restdays-v1`         | Datas marcadas como descanso                                                                                                        |
 | `mt-train-since-v1`      | Data do 1º treino (preserva o contador "tempo treinando" mesmo que o histórico, limitado a 100 registros, descarte os mais antigos) |
+| `mt-last-backup-v1`      | Data do último backup exportado (usada no aviso de backup pendente)                                                                 |
+| `mt-pre-import-v1`       | Cópia dos dados de antes da última importação (permite desfazer)                                                                    |
 | `mt-migrated-v5`         | Marca que a migração antiga da biblioteca já rodou                                                                                  |
 | `mt-migrated-v6`         | Marca que a atualização de ortografia e grupos musculares já foi aplicada aos dados salvos                                          |
 

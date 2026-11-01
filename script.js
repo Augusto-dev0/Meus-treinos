@@ -339,6 +339,268 @@ let catalogSelectMode = false;
 let catalogSelected   = new Set();
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   BACKUP DOS DADOS (exportar / importar arquivo .json)
+   Os dados vivem só no localStorage; o backup é a única proteção contra
+   limpar o navegador, desinstalar o app ou trocar de aparelho.
+   A importação VALIDA e LIMPA tudo que vem do arquivo, porque o app insere
+   nomes direto no HTML: um arquivo adulterado não pode injetar código.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const K_LASTBK    = 'mt-last-backup-v1';   /* data do último backup exportado */
+const K_PREIMPORT = 'mt-pre-import-v1';    /* cópia dos dados de antes da última importação */
+const BACKUP_SCHEMA = 1;
+const BACKUP_STALE_DAYS = 30;
+
+function buildBackup() {
+  const since = trainingStartDate();
+  return {
+    app: 'meus-treinos', schema: BACKUP_SCHEMA, exportedAt: new Date().toISOString(),
+    data: {
+      library, workouts, history,
+      restDays: [...restDays],
+      trainSince: since ? since.toISOString() : null,
+      checklistDismissed: !!localStorage.getItem(K_CHECKLIST_DISMISSED),
+    }
+  };
+}
+
+/* ── Limpeza dos dados vindos do arquivo ─────────────────────────────────── */
+const BK_CHARS = { '<':'‹', '>':'›', '"':'”', "'":'’', '`':'´', '\\':'/' };
+const bkStr   = (v, max = 200) => String(v == null ? '' : v)
+  .replace(/[<>"'`\\]/g, c => BK_CHARS[c]).replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
+const bkId    = v => String(v == null ? '' : v).replace(/[^\w-]/g, '').slice(0, 40);
+const bkColor = c => /^#[0-9a-fA-F]{6}$/.test(String(c)) ? String(c) : '#7a7870';
+const bkInt   = (n, min, max, def) => { n = Math.round(Number(n)); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def; };
+const bkISO   = d => { const t = Date.parse(d); return isNaN(t) ? null : new Date(t).toISOString(); };
+const bkArr   = v => Array.isArray(v) ? v : [];
+
+function sanitizeBackup(raw) {
+  if (!raw || typeof raw !== 'object' || raw.app !== 'meus-treinos' || !raw.data || typeof raw.data !== 'object') {
+    throw new Error('Este arquivo não parece ser um backup do Meus Treinos.');
+  }
+  if (Number(raw.schema) > BACKUP_SCHEMA) {
+    throw new Error('Este backup foi criado por uma versão mais nova do app. Atualize o app e tente de novo.');
+  }
+  const d = raw.data;
+  let ignored = 0;
+
+  const seen = new Set();
+  const lib = [];
+  bkArr(d.library).slice(0, 5000).forEach(e => {
+    const id = bkId(e && e.id), name = fixPt(bkStr(e && e.name, 80));
+    if (!id || !name || seen.has(id)) { ignored++; return; }
+    seen.add(id);
+    const o = {
+      id, name,
+      muscle:    canonMuscle(bkStr(e.muscle, 30)) || 'Corpo',
+      color:     bkColor(e.color),
+      sets:      bkStr(e.sets, 30),
+      tip:       bkStr(e.tip, 300),
+      category:  bkStr(e.category, 30) || 'Academia',
+      equipment: canonEquip(bkStr(e.equipment, 30)),
+    };
+    if (e.catalogId) o.catalogId = bkId(e.catalogId);
+    if (e._userImported) o._userImported = true;
+    lib.push(o);
+  });
+
+  const wk = {};
+  if (d.workouts && typeof d.workouts === 'object' && !Array.isArray(d.workouts)) {
+    for (let day = 0; day < 7; day++) {
+      const list = bkArr(d.workouts[day]).slice(0, 20).map(w => {
+        const name = bkStr(w && w.name, 60);
+        if (!name) { ignored++; return null; }
+        return { name, exIds: bkArr(w.exIds).slice(0, 100).map(bkId).filter(Boolean) };
+      }).filter(Boolean);
+      if (list.length) wk[day] = list;
+    }
+  }
+
+  const hist = bkArr(d.history).slice(0, 500).map(h => {
+    const date = bkISO(h && h.date);
+    if (!date) { ignored++; return null; }
+    const exSnap = bkArr(h.exSnap).slice(0, 100).map(x => {
+      const o = {
+        name: fixPt(bkStr(x && x.name, 80)), muscle: canonMuscle(bkStr(x && x.muscle, 30)),
+        sets: bkStr(x && x.sets, 30), color: bkColor(x && x.color),
+      };
+      if (x && x.removed) o.removed = true;
+      return o;
+    });
+    const o = {
+      id:       bkId(h.id) || Math.random().toString(36).slice(2, 8),
+      date,
+      wkName:   bkStr(h.wkName, 60),
+      exIds:    bkArr(h.exIds).slice(0, 100).map(bkId).filter(Boolean),
+      duration: bkInt(h.duration, 1, 1440, 1),
+      dayIndex: bkInt(h.dayIndex, 0, 6, (new Date(date).getDay() + 6) % 7),
+    };
+    if (exSnap.length) o.exSnap = exSnap;
+    return o;
+  }).filter(Boolean).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+
+  /* O app guarda no máximo 100 registros; a data do mais antigo descartado
+     continua valendo para o contador "tempo treinando". */
+  let trainSince = bkISO(d.trainSince);
+  while (hist.length > 100) {
+    const old = hist.pop().date;
+    if (!trainSince || Date.parse(old) < Date.parse(trainSince)) trainSince = old;
+  }
+
+  const rest = [...new Set(bkArr(d.restDays).map(String).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)))].slice(0, 3650);
+
+  return {
+    ignored, exportedAt: bkISO(raw.exportedAt),
+    data: { library: lib, workouts: wk, history: hist, restDays: rest, trainSince, checklistDismissed: !!d.checklistDismissed }
+  };
+}
+
+function applyBackupData(data) {
+  library  = data.library;
+  workouts = data.workouts;
+  history  = data.history;
+  restDays = new Set(data.restDays);
+  save(K_LIB, library); save(K_WORKOUTS, workouts); save(K_HISTORY, history); saveRestDays();
+  if (data.trainSince) localStorage.setItem(K_SINCE, data.trainSince); else localStorage.removeItem(K_SINCE);
+  if (data.checklistDismissed) localStorage.setItem(K_CHECKLIST_DISMISSED, '1');
+  else localStorage.removeItem(K_CHECKLIST_DISMISSED);
+  clipboardWorkout = null; selDay = WEEKDAY; libFilter = 'Todos';
+  renderStats(); renderChecklist(); renderDayStrip(); renderDayContent(); renderHistory(); renderLibrary();
+  updateBackupBadge();
+}
+
+const bkCountWorkouts = wk => Object.values(wk).reduce((n, l) => n + l.length, 0);
+const bkFmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR') : '';
+function bkDescribe(data) {
+  return `${data.library.length} exercício${data.library.length !== 1 ? 's' : ''} · `
+       + `${bkCountWorkouts(data.workouts)} treino${bkCountWorkouts(data.workouts) !== 1 ? 's' : ''} · `
+       + `${data.history.length} registro${data.history.length !== 1 ? 's' : ''} no histórico`;
+}
+
+/* ── Interface ───────────────────────────────────────────────────────────── */
+function bkMessage(text, type) {
+  const el = document.getElementById('bk-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'bk-msg' + (text ? ' ' + (type || 'ok') : '');
+}
+function backupStale() {
+  const hasData = history.length > 0 || library.length > 0 || Object.keys(workouts).length > 0;
+  if (!hasData) return false;
+  const last = Date.parse(localStorage.getItem(K_LASTBK) || '');
+  return isNaN(last) || (Date.now() - last) > BACKUP_STALE_DAYS * 86400000;
+}
+function updateBackupBadge() {
+  const b = document.getElementById('header-data-btn');
+  if (!b) return;
+  const stale = backupStale();
+  b.classList.toggle('needs-backup', stale);
+  b.title = stale ? 'Backup dos dados (faça uma cópia!)' : 'Backup dos dados';
+}
+function renderBackupModal() {
+  const tile = (n, l) => `<div class="bk-tile"><strong>${n}</strong><span>${l}</span></div>`;
+  document.getElementById('bk-summary').innerHTML =
+    tile(library.length, 'Exercícios') + tile(bkCountWorkouts(workouts), 'Treinos') +
+    tile(history.length, 'Histórico') + tile(restDays.size, 'Descansos');
+  const last = Date.parse(localStorage.getItem(K_LASTBK) || '');
+  const lastEl = document.getElementById('bk-last');
+  if (isNaN(last)) {
+    lastEl.textContent = 'Você ainda não exportou nenhum backup.';
+    lastEl.className = 'bk-last warn';
+  } else {
+    lastEl.textContent = 'Último backup: ' + bkFmtDate(new Date(last).toISOString());
+    lastEl.className = 'bk-last' + (backupStale() ? ' warn' : '');
+  }
+  document.getElementById('bk-undo-btn').style.display = localStorage.getItem(K_PREIMPORT) ? '' : 'none';
+  let canShare = false;
+  try {
+    canShare = !!(navigator.canShare && navigator.canShare({ files: [new File(['{}'], 'a.json', { type: 'application/json' })] }));
+  } catch {}
+  document.getElementById('bk-share-btn').style.display = canShare ? '' : 'none';
+}
+function openBackupModal() {
+  bkMessage('');
+  renderBackupModal();
+  document.getElementById('overlay-backup').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeBackupModal() {
+  document.getElementById('overlay-backup').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function exportBackup(mode) {
+  const json  = JSON.stringify(buildBackup(), null, 2);
+  const fname = `meus-treinos-backup-${dateKey(new Date())}.json`;
+  try {
+    if (mode === 'share') {
+      await navigator.share({ files: [new File([json], fname, { type: 'application/json' })], title: 'Backup do Meus Treinos' });
+    } else {
+      const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+  } catch (err) {
+    if (err && err.name === 'AbortError') return; /* o usuário cancelou o compartilhamento */
+    bkMessage('Não foi possível gerar o arquivo. Tente novamente.', 'err');
+    return;
+  }
+  localStorage.setItem(K_LASTBK, new Date().toISOString());
+  bkMessage('Backup gerado. Guarde o arquivo em um lugar seguro (nuvem, e-mail ou outro aparelho).', 'ok');
+  renderBackupModal(); updateBackupBadge();
+}
+
+async function importBackupFile(input) {
+  const file = input.files && input.files[0];
+  input.value = ''; /* permite escolher o mesmo arquivo de novo */
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { bkMessage('Arquivo grande demais para ser um backup do app.', 'err'); return; }
+  let parsed, result;
+  try { parsed = JSON.parse(await file.text()); }
+  catch { bkMessage('Não consegui ler o arquivo. Ele precisa ser um .json exportado pelo app.', 'err'); return; }
+  try { result = sanitizeBackup(parsed); }
+  catch (e) { bkMessage(e.message, 'err'); return; }
+  confirmRestore(result, 'Importar backup', false);
+}
+
+function confirmRestore(result, title, isUndo) {
+  const when = result.exportedAt ? ` (de ${bkFmtDate(result.exportedAt)})` : '';
+  const warn = result.ignored ? `<br><br>${result.ignored} item${result.ignored !== 1 ? 's' : ''} inválido${result.ignored !== 1 ? 's' : ''} no arquivo ${result.ignored !== 1 ? 'serão ignorados' : 'será ignorado'}.` : '';
+  const now  = { library, workouts, history };
+  showConfirm(title,
+    `Os dados atuais serão <strong>substituídos</strong> pelos do arquivo${when}.<br><br>`
+    + `<strong>Arquivo:</strong> ${bkDescribe(result.data)}<br>`
+    + `<strong>Agora neste aparelho:</strong> ${bkDescribe(now)}`
+    + (isUndo ? '' : '<br><br>Dá para desfazer logo depois, em "Desfazer última importação".') + warn,
+    () => {
+      const before = buildBackup();
+      try {
+        if (!isUndo) {
+          try { localStorage.setItem(K_PREIMPORT, JSON.stringify(before)); } catch {}
+        }
+        applyBackupData(result.data);
+        if (isUndo) localStorage.removeItem(K_PREIMPORT);
+      } catch {
+        try { applyBackupData(before.data); } catch {}
+        bkMessage('Não foi possível importar (sem espaço no navegador?). Seus dados foram mantidos.', 'err');
+        renderBackupModal();
+        return;
+      }
+      bkMessage(isUndo ? 'Importação desfeita: seus dados anteriores voltaram.' : 'Backup importado com sucesso.', 'ok');
+      renderBackupModal();
+      showToast(isUndo ? 'Dados anteriores restaurados' : 'Backup importado');
+    });
+}
+
+function undoImport() {
+  let result;
+  try { result = sanitizeBackup(JSON.parse(localStorage.getItem(K_PREIMPORT))); }
+  catch { bkMessage('Não há uma importação anterior para desfazer.', 'err'); localStorage.removeItem(K_PREIMPORT); renderBackupModal(); return; }
+  confirmRestore(result, 'Desfazer importação', true);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    BOOT
    ═══════════════════════════════════════════════════════════════════════════ */
 (function init() {
@@ -356,6 +618,7 @@ let catalogSelected   = new Set();
   renderHistory();
   renderLibrary();
   renderTimerPresets();
+  updateBackupBadge();
   updateTimerUI();
 })();
 

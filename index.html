@@ -68,6 +68,7 @@
         "Sequência de treinos considerando apenas dias úteis programados",
         "Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios",
         "Aviso de fim de cronômetro por som, vibração, flash e notificação",
+        "Backup dos dados em arquivo (exportar e importar)",
         "Funciona offline e pode ser instalado como app (PWA)",
         "Dados salvos apenas no navegador, sem cadastro"
       ],
@@ -114,6 +115,8 @@
         <h1 aria-label="Meus Treinos">MEUS<span>TREINOS</span></h1>
         <p class="header-sub" id="today-label">carregando...</p>
       </div>
+      <button class="icon-btn header-data-btn" id="header-data-btn" onclick="openBackupModal()"
+        title="Backup dos dados" aria-label="Backup dos dados"><i class="ph ph-database"></i></button>
     </div>
     <div class="header-stats" id="header-stats"></div>
   </header>
@@ -145,6 +148,7 @@
         <li>Histórico com calendário de dias treinados, perdidos e de descanso</li>
         <li>Catálogo com mais de 5 mil variações de exercícios</li>
         <li>Timer de descanso com aviso sonoro, vibração e notificação</li>
+        <li>Backup dos dados em arquivo, para guardar ou levar para outro aparelho</li>
       </ul>
       <p>Ative o JavaScript no navegador para usar o app. Seus dados ficam salvos apenas no seu dispositivo.</p>
     </section>
@@ -440,6 +444,29 @@
       <button class="tbtn primary" onclick="saveWorkout()">
         <i class="ph ph-floppy-disk"></i> Salvar treino
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BACKUP DOS DADOS ════════════════════════════════════════════════ -->
+<div id="overlay-backup" class="overlay" onclick="if(event.target===this)closeBackupModal()">
+  <div class="modal" style="max-width:420px" role="dialog" aria-modal="true" aria-labelledby="bk-title">
+    <div class="modal-header">
+      <h2 id="bk-title">Backup dos dados</h2>
+      <button class="modal-close" onclick="closeBackupModal()" aria-label="Fechar"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="bk-intro">Seus treinos ficam salvos só neste aparelho. Se você limpar os dados do navegador, desinstalar o app ou trocar de celular, eles se perdem. Exporte um arquivo para guardar uma cópia ou levar para outro aparelho.</p>
+      <div class="bk-summary" id="bk-summary"></div>
+      <div class="bk-last" id="bk-last"></div>
+      <div class="bk-actions">
+        <button class="btn-accent bk-btn" onclick="exportBackup('download')"><i class="ph ph-download-simple"></i> Baixar backup</button>
+        <button class="btn-ghost bk-btn" id="bk-share-btn" style="display:none" onclick="exportBackup('share')"><i class="ph ph-share-network"></i> Compartilhar</button>
+        <button class="btn-ghost bk-btn" onclick="document.getElementById('bk-file').click()"><i class="ph ph-upload-simple"></i> Importar backup</button>
+        <input id="bk-file" type="file" accept=".json,application/json" hidden onchange="importBackupFile(this)">
+        <button class="btn-ghost bk-btn" id="bk-undo-btn" style="display:none" onclick="undoImport()"><i class="ph ph-arrow-counter-clockwise"></i> Desfazer última importação</button>
+      </div>
+      <div id="bk-msg" class="bk-msg" role="status" aria-live="polite"></div>
     </div>
   </div>
 </div>
