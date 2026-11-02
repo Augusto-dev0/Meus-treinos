@@ -271,10 +271,7 @@
     <p>Seus dados ficam só neste aparelho.</p>
     <div class="footer-links">
       <button type="button" class="link-btn" onclick="openAbout()">Privacidade e dados</button>
-      <span aria-hidden="true">·</span>
-      <a href="https://github.com/Augusto-dev0/Meus-treinos/issues/new" target="_blank" rel="noopener noreferrer">Enviar feedback</a>
-      <span aria-hidden="true">·</span>
-      <a href="https://github.com/Augusto-dev0/Meus-treinos" target="_blank" rel="noopener noreferrer">Código no GitHub</a>
+      <span class="footer-feedback" hidden><span aria-hidden="true">·</span> <a id="feedback-link" href="#" rel="noopener noreferrer">Enviar feedback</a></span>
     </div>
   </footer>
 
@@ -512,7 +509,7 @@
       <ul class="welcome-list">
         <li><i class="ph-bold ph-lock-simple"></i><span><strong>Tudo fica no seu aparelho.</strong> O app não tem cadastro nem servidor: seus treinos, histórico e medidas não são enviados para a internet.</span></li>
         <li><i class="ph-bold ph-database"></i><span><strong>O backup é por sua conta.</strong> Se você limpar os dados do navegador, desinstalar o app ou trocar de celular, os dados se perdem. Exporte um arquivo de vez em quando.</span></li>
-        <li><i class="ph-bold ph-chat-circle-text"></i><span><strong>Sugestões e problemas?</strong> Conte pelo link "Enviar feedback" no rodapé.</span></li>
+        <li id="about-feedback" hidden><i class="ph-bold ph-chat-circle-text"></i><span><strong>Sugestões e problemas?</strong> Conte pelo link "Enviar feedback" no rodapé: ele abre o seu aplicativo de e-mail.</span></li>
       </ul>
       <div class="bk-actions">
         <button class="btn-accent bk-btn" onclick="closeAbout();openBackupModal()"><i class="ph ph-database"></i> Fazer backup agora</button>

@@ -22,15 +22,10 @@ O site é um aplicativo de página única: existe uma única URL pública, e as 
 - Aviso de fim de cronômetro por som, vibração (onde suportado), flash na tela e notificação do sistema
 - Backup dos dados: exportar e importar um arquivo .json (com validação e opção de desfazer a importação)
 
-## Código e documentação
-
-- [Repositório no GitHub](https://github.com/Augusto-dev0/Meus-treinos): código-fonte (HTML, CSS e JavaScript puros, sem dependências de build)
-- [README](https://github.com/Augusto-dev0/Meus-treinos/blob/main/README.md): descrição completa das funcionalidades, estrutura do projeto e armazenamento de dados
-
 ## Autor
 
 - Luiz Augusto: [GitHub](https://github.com/Augusto-dev0), [LinkedIn](https://linkedin.com/in/luiz-augusto7x), [Instagram](https://www.instagram.com/luiz.augusto7x/)
 
-## Optional
+## Licença
 
-- [Licença](https://github.com/Augusto-dev0/Meus-treinos/blob/main/LICENSE): licença proprietária; o uso, a cópia ou a redistribuição do código dependem de autorização do autor
+- Licença proprietária: todos os direitos reservados ao autor. O uso, a cópia ou a redistribuição do código dependem de autorização prévia e por escrito.

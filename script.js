@@ -614,6 +614,23 @@ function undoImport() {
    ═══════════════════════════════════════════════════════════════════════════ */
 const K_WELCOME = 'mt-welcome-seen-v1';
 
+/* E-mail que recebe o feedback. Enquanto estiver vazio, o link "Enviar feedback"
+   fica escondido. Preencha entre aspas, por exemplo: 'contato@exemplo.com'.
+   O link é montado aqui (não escrito no HTML), o que dificulta a coleta por robôs. */
+const FEEDBACK_EMAIL = 'luizaugusto.contato9@gmail.com';
+
+function initFeedbackLink() {
+  const mail = String(FEEDBACK_EMAIL || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return;
+  const link = document.getElementById('feedback-link');
+  if (link) {
+    link.href = 'mailto:' + mail + '?subject=' + encodeURIComponent('Feedback do Meus Treinos');
+    link.parentElement.hidden = false;
+  }
+  const li = document.getElementById('about-feedback');
+  if (li) li.hidden = false;
+}
+
 /* [nome, grupo, equipamento, categoria] */
 const TPL_EX = {
   supinoReto:   ['Supino reto com barra', 'Peito', 'Barra', 'Academia'],
@@ -881,6 +898,7 @@ function closeAbout() {
   renderTimerPresets();
   updateBackupBadge();
   initWelcome();
+  initFeedbackLink();
   updateTimerUI();
 })();
 

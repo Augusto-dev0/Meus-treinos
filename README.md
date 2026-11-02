@@ -30,7 +30,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Reordene os exercícios arrastando pela alça (mouse, toque ou caneta) ou com os botões de subir e descer, que funcionam em qualquer aparelho, inclusive no celular
 - **Modelos de treino prontos** (botão "Modelos prontos"): ABC, Push / Pull / Legs, Superior / Inferior (4 treinos), Corpo inteiro e Em casa (só peso do corpo). Você escolhe em quais dias da semana cada treino entra e o app cria os exercícios na biblioteca, já com as séries. Exercícios que você já tem (mesmo nome) são reaproveitados, dias que já têm treino ganham mais um (nada é apagado) e aplicar o mesmo modelo duas vezes não duplica treinos. São modelos genéricos, como ponto de partida
 - **Copie um treino e cole em outro dia** (ou em vários) sem recriar do zero
-- **Marque dias de descanso**: escolha o dia na faixa Seg–Dom e toque em *Marcar descanso*. O dia fica identificado com uma lua, aparece no calendário do histórico e **não quebra a sequência**. Se você treinar naquele dia, a marcação é removida sozinha; e um dia em que você já treinou não pode ser marcado como descanso
+- **Marque dias de descanso**: escolha o dia na faixa Seg–Dom e toque em _Marcar descanso_. O dia fica identificado com uma lua, aparece no calendário do histórico e **não quebra a sequência**. Se você treinar naquele dia, a marcação é removida sozinha; e um dia em que você já treinou não pode ser marcado como descanso
 
 ### Painel do topo
 
@@ -63,20 +63,20 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Cadastre nome, grupo muscular, séries, cor e dica para cada exercício
 - O **ícone é automático**, definido pelo grupo muscular (veja a seção abaixo); o formulário mostra uma pré-visualização
 - Modo de **seleção múltipla** para excluir vários exercícios de uma vez
-- Busca por nome, grupo muscular, categoria ou equipamento — **ignora acentos e maiúsculas** (digitar `biceps` encontra *Bíceps*)
+- Busca por nome, grupo muscular, categoria ou equipamento — **ignora acentos e maiúsculas** (digitar `biceps` encontra _Bíceps_)
 - Filtro por grupo muscular
 
 ### Ícones dos grupos musculares
 
 Cada exercício usa o ícone do seu grupo, na cor do exercício, em todas as telas (treinos, biblioteca, catálogo, histórico, seleção de exercícios e treino ativo).
 
-| Grupo | Ícone |
-| ----- | ----- |
+| Grupo                                                            | Ícone                                                                                          |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Peito, Costas, Ombros, Bíceps, Tríceps, Abdômen, Glúteos, Pernas | Boneco em SVG com o músculo do grupo em destaque (costas, tríceps e glúteos em vista traseira) |
-| Cardio | Ícone de batimento cardíaco |
-| Mobilidade | Ícone de tai chi |
-| Corpo | Ícone de corrida |
-| Grupo personalizado | Ícone de corrida (padrão) |
+| Cardio                                                           | Ícone de batimento cardíaco                                                                    |
+| Mobilidade                                                       | Ícone de tai chi                                                                               |
+| Corpo                                                            | Ícone de corrida                                                                               |
+| Grupo personalizado                                              | Ícone de corrida (padrão)                                                                      |
 
 Os desenhos são SVG inline e escalam com o tamanho da fonte, então ficam nítidos em qualquer tela. Não há emojis na interface: todos os símbolos usam [Phosphor Icons](https://phosphoricons.com/).
 
@@ -126,8 +126,8 @@ Como tudo fica no `localStorage`, limpar o navegador, desinstalar o app ou troca
 ### Boas-vindas, privacidade e feedback
 
 - Quem abre o app pela primeira vez vê um **cartão de boas-vindas** dentro da página (não é pop-up) explicando que os dados ficam só no aparelho, lembrando do backup e oferecendo começar por um modelo. "Entendi" o dispensa para sempre; quem já tem dados nunca o vê
-- O rodapé tem **Privacidade e dados**, **Enviar feedback** (abre a página de novos *issues* do repositório no GitHub) e **Código no GitHub**
-- Para trocar o canal de feedback por um e-mail ou formulário, altere o link "Enviar feedback" no rodapé do `index.html`
+- O rodapé tem **Privacidade e dados** e **Enviar feedback**. O feedback é por **e-mail**: o link abre o aplicativo de e-mail da pessoa já com o assunto preenchido. Ele só aparece depois que você preencher a constante `FEEDBACK_EMAIL` no início do bloco "Modelos de treino" do `script.js` (vazia, o link fica escondido)
+- O site não tem link para o repositório do código
 
 ### Checklist de primeiros passos
 
@@ -171,16 +171,16 @@ TreinoSite/
 
 O app é de **página única**: existe uma só URL pública, e as áreas (Treinos, Histórico, Biblioteca, Timer) são abas dentro dela. Por isso o sitemap tem uma URL e há um único conjunto de metadados.
 
-| Item                          | Onde                                                                                            |
-| ----------------------------- | ----------------------------------------------------------------------------------------------- |
-| `robots.txt`                  | Permite o rastreamento de todo o site e aponta para o sitemap                                   |
-| `sitemap.xml`                 | Lista a URL principal (atualize o `lastmod` quando houver mudanças relevantes)                   |
-| `<link rel="canonical">`      | Define a URL principal em `index.html`                                                          |
-| `<title>` e `meta description`| Texto específico do app, dentro dos tamanhos recomendados (59 e 156 caracteres)                 |
-| Open Graph e Twitter Card     | Prévia ao compartilhar o link                                                                   |
-| Schema.org (JSON-LD)          | `WebSite`, `WebApplication` e `Person` ligados por `@id`, em `index.html`                       |
-| HTML semântico                | Um `h1`, `h2` por seção (os de Treinos e Timer são só para leitores de tela), `h3` no dia, `header`, `nav`, `main` e `section`. Há um bloco `noscript` com a descrição do app para quem não executa JavaScript |
-| `llms.txt`                    | Resumo do site, funcionalidades e links importantes para IAs e agentes                          |
+| Item                           | Onde                                                                                                                                                                                                           |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `robots.txt`                   | Permite o rastreamento de todo o site e aponta para o sitemap                                                                                                                                                  |
+| `sitemap.xml`                  | Lista a URL principal (atualize o `lastmod` quando houver mudanças relevantes)                                                                                                                                 |
+| `<link rel="canonical">`       | Define a URL principal em `index.html`                                                                                                                                                                         |
+| `<title>` e `meta description` | Texto específico do app, dentro dos tamanhos recomendados (59 e 156 caracteres)                                                                                                                                |
+| Open Graph e Twitter Card      | Prévia ao compartilhar o link                                                                                                                                                                                  |
+| Schema.org (JSON-LD)           | `WebSite`, `WebApplication` e `Person` ligados por `@id`, em `index.html`                                                                                                                                      |
+| HTML semântico                 | Um `h1`, `h2` por seção (os de Treinos e Timer são só para leitores de tela), `h3` no dia, `header`, `nav`, `main` e `section`. Há um bloco `noscript` com a descrição do app para quem não executa JavaScript |
+| `llms.txt`                     | Resumo do site, funcionalidades e links importantes para IAs e agentes                                                                                                                                         |
 
 ### Conferir depois de publicar
 
@@ -209,8 +209,8 @@ Todos devem responder `200`. Depois, valide o JSON-LD em [validator.schema.org](
 ### Opção 2 — Local
 
 ```bash
-git clone https://github.com/Augusto-dev0/Meus-treinos.git
-cd Meus-treinos
+git clone <endereço-do-seu-repositório>
+cd <pasta-do-projeto>
 # Abra index.html no browser · nenhuma dependência necessária
 ```
 
@@ -224,17 +224,17 @@ Depois de um novo deploy, o app instalado pega a versão nova sozinho. Se por al
 
 ## Tecnologias
 
-| Tecnologia         | Uso                                                              |
-| ------------------ | ---------------------------------------------------------------- |
-| HTML5              | Estrutura, modais, tela de treino ativo                          |
-| CSS3               | Variáveis, animações, layout responsivo                          |
-| JavaScript ES6+    | Lógica, localStorage, drag & drop, Web Audio, Notifications API  |
-| SVG inline         | Ícones de grupos musculares, anel do timer e anel de conclusão   |
-| Canvas 2D          | Confetes da tela de conclusão (com física)                       |
-| Phosphor Icons     | Ícones da interface                                              |
-| Google Fonts       | Bebas Neue (títulos) + DM Sans (corpo)                           |
-| Web App Manifest   | Instalação como PWA                                              |
-| Service Worker API | Cache offline com estratégia *network-first* para HTML/CSS/JS    |
+| Tecnologia         | Uso                                                             |
+| ------------------ | --------------------------------------------------------------- |
+| HTML5              | Estrutura, modais, tela de treino ativo                         |
+| CSS3               | Variáveis, animações, layout responsivo                         |
+| JavaScript ES6+    | Lógica, localStorage, drag & drop, Web Audio, Notifications API |
+| SVG inline         | Ícones de grupos musculares, anel do timer e anel de conclusão  |
+| Canvas 2D          | Confetes da tela de conclusão (com física)                      |
+| Phosphor Icons     | Ícones da interface                                             |
+| Google Fonts       | Bebas Neue (títulos) + DM Sans (corpo)                          |
+| Web App Manifest   | Instalação como PWA                                             |
+| Service Worker API | Cache offline com estratégia _network-first_ para HTML/CSS/JS   |
 
 ---
 
@@ -242,19 +242,19 @@ Depois de um novo deploy, o app instalado pega a versão nova sozinho. Se por al
 
 Todos os dados ficam no `localStorage` do browser — nenhum dado é enviado a servidores.
 
-| Chave                    | Conteúdo                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `mt-library-v1`          | Exercícios da biblioteca pessoal                                                                                               |
-| `mt-workouts-v1`         | Treinos por dia da semana                                                                                                      |
-| `mt-history-v1`          | Histórico de treinos concluídos                                                                                                |
-| `mt-checklist-dismissed` | Se o checklist foi dispensado                                                                                                  |
-| `mt-restdays-v1`         | Datas marcadas como descanso                                                                                                   |
+| Chave                    | Conteúdo                                                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `mt-library-v1`          | Exercícios da biblioteca pessoal                                                                                                    |
+| `mt-workouts-v1`         | Treinos por dia da semana                                                                                                           |
+| `mt-history-v1`          | Histórico de treinos concluídos                                                                                                     |
+| `mt-checklist-dismissed` | Se o checklist foi dispensado                                                                                                       |
+| `mt-restdays-v1`         | Datas marcadas como descanso                                                                                                        |
 | `mt-train-since-v1`      | Data do 1º treino (preserva o contador "tempo treinando" mesmo que o histórico, limitado a 100 registros, descarte os mais antigos) |
-| `mt-last-backup-v1`      | Data do último backup exportado (usada no aviso de backup pendente)                                                             |
-| `mt-pre-import-v1`       | Cópia dos dados de antes da última importação (permite desfazer)                                                                |
-| `mt-welcome-seen-v1`     | Se o cartão de boas-vindas já foi dispensado (ou se o usuário já tinha dados)                                                    |
-| `mt-migrated-v5`         | Marca que a migração antiga da biblioteca já rodou                                                                             |
-| `mt-migrated-v6`         | Marca que a atualização de ortografia e grupos musculares já foi aplicada aos dados salvos                                     |
+| `mt-last-backup-v1`      | Data do último backup exportado (usada no aviso de backup pendente)                                                                 |
+| `mt-pre-import-v1`       | Cópia dos dados de antes da última importação (permite desfazer)                                                                    |
+| `mt-welcome-seen-v1`     | Se o cartão de boas-vindas já foi dispensado (ou se o usuário já tinha dados)                                                       |
+| `mt-migrated-v5`         | Marca que a migração antiga da biblioteca já rodou                                                                                  |
+| `mt-migrated-v6`         | Marca que a atualização de ortografia e grupos musculares já foi aplicada aos dados salvos                                          |
 
 ### Migração automática de dados
 
@@ -266,17 +266,17 @@ Na primeira abertura após a atualização v6, o app corrige sozinho os dados qu
 
 Testado em 12 tamanhos, de 320 px a 1920 px, em retrato e paisagem. Os ícones e a interface escalam de forma fluida (`clamp()` e unidades `em`).
 
-| Condição                    | Layout                                                                                               |
-| --------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `≥ 1100px`                  | Desktop largo: container maior e biblioteca com mais colunas                                         |
-| `601px – 900px`             | Tablet: abas no topo, biblioteca em 3 colunas, aproveita toda a largura                              |
-| `≤ 600px`                   | Celular: bottom navigation fixa, modais como bottom sheet, biblioteca em 2 colunas                   |
-| `≤ 480px`                   | Cabeçalho em duas linhas (as 3 pílulas ocupam a largura toda); botão do calendário em largura total  |
-| `≤ 420px`                   | Cartão de treino: botões de ação descem para uma linha própria (o nome não é cortado)                |
-| `≤ 360px`                   | Celulares compactos: ícones, legenda do calendário e espaçamentos reduzidos                          |
-| `altura ≤ 560px` (paisagem) | Treino ativo compacto e com rolagem, para os botões nunca ficarem fora de alcance                    |
-| `pointer: coarse` (toque)   | Campos com fonte de 16 px (evita o zoom automático do iOS) e botões maiores                          |
-| `hover: hover` (mouse)      | Efeitos de hover só em aparelhos com mouse (sem "hover grudado" no toque)                            |
+| Condição                    | Layout                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| `≥ 1100px`                  | Desktop largo: container maior e biblioteca com mais colunas                                        |
+| `601px – 900px`             | Tablet: abas no topo, biblioteca em 3 colunas, aproveita toda a largura                             |
+| `≤ 600px`                   | Celular: bottom navigation fixa, modais como bottom sheet, biblioteca em 2 colunas                  |
+| `≤ 480px`                   | Cabeçalho em duas linhas (as 3 pílulas ocupam a largura toda); botão do calendário em largura total |
+| `≤ 420px`                   | Cartão de treino: botões de ação descem para uma linha própria (o nome não é cortado)               |
+| `≤ 360px`                   | Celulares compactos: ícones, legenda do calendário e espaçamentos reduzidos                         |
+| `altura ≤ 560px` (paisagem) | Treino ativo compacto e com rolagem, para os botões nunca ficarem fora de alcance                   |
+| `pointer: coarse` (toque)   | Campos com fonte de 16 px (evita o zoom automático do iOS) e botões maiores                         |
+| `hover: hover` (mouse)      | Efeitos de hover só em aparelhos com mouse (sem "hover grudado" no toque)                           |
 
 O app também pode ser instalado e usado em **qualquer orientação** (retrato ou paisagem).
 
