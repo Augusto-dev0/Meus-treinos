@@ -470,7 +470,7 @@ function applyBackupData(data) {
   else localStorage.removeItem(K_CHECKLIST_DISMISSED);
   clipboardWorkout = null; selDay = WEEKDAY; libFilter = 'Todos';
   renderStats(); renderChecklist(); renderDayStrip(); renderDayContent(); renderHistory(); renderLibrary();
-  updateBackupBadge();
+  updateBackupBadge(); renderWelcome();
 }
 
 const bkCountWorkouts = wk => Object.values(wk).reduce((n, l) => n + l.length, 0);
@@ -606,6 +606,262 @@ function undoImport() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   MODELOS DE TREINO PRONTOS
+   Cada modelo cria os exercícios na biblioteca (reaproveitando os que você já
+   tem, por nome) e os treinos nos dias escolhidos. Nada é apagado: dias que
+   já têm treino ganham mais um. Aplicar o mesmo modelo duas vezes não
+   duplica treinos de mesmo nome no mesmo dia.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const K_WELCOME = 'mt-welcome-seen-v1';
+
+/* [nome, grupo, equipamento, categoria] */
+const TPL_EX = {
+  supinoReto:   ['Supino reto com barra', 'Peito', 'Barra', 'Academia'],
+  supinoIncl:   ['Supino inclinado com halteres', 'Peito', 'Halteres', 'Academia'],
+  crucifixo:    ['Crucifixo com halteres', 'Peito', 'Halteres', 'Academia'],
+  flexao:       ['Flexão de braços', 'Peito', 'Nenhum', 'Casa'],
+  desenvHalt:   ['Desenvolvimento com halteres', 'Ombros', 'Halteres', 'Academia'],
+  elevLateral:  ['Elevação lateral com halteres', 'Ombros', 'Halteres', 'Academia'],
+  facePull:     ['Face pull no cabo', 'Ombros', 'Cabo', 'Academia'],
+  flexaoPike:   ['Flexão pike', 'Ombros', 'Nenhum', 'Casa'],
+  triPulley:    ['Tríceps pulley com corda', 'Tríceps', 'Cabo', 'Academia'],
+  triTesta:     ['Tríceps testa com barra', 'Tríceps', 'Barra', 'Academia'],
+  mergCadeira:  ['Mergulho na cadeira', 'Tríceps', 'Banco', 'Casa'],
+  flexaoDiam:   ['Flexão diamante', 'Tríceps', 'Nenhum', 'Casa'],
+  puxadaFrontal:['Puxada frontal', 'Costas', 'Cabo', 'Academia'],
+  remadaCurv:   ['Remada curvada com barra', 'Costas', 'Barra', 'Academia'],
+  remadaBaixa:  ['Remada baixa no cabo', 'Costas', 'Cabo', 'Academia'],
+  remadaUni:    ['Remada unilateral com halter', 'Costas', 'Halteres', 'Academia'],
+  superman:     ['Superman', 'Costas', 'Nenhum', 'Casa'],
+  roscaDireta:  ['Rosca direta com barra', 'Bíceps', 'Barra', 'Academia'],
+  roscaMartelo: ['Rosca martelo com halteres', 'Bíceps', 'Halteres', 'Academia'],
+  roscaAlt:     ['Rosca alternada com halteres', 'Bíceps', 'Halteres', 'Academia'],
+  agachLivre:   ['Agachamento livre com barra', 'Pernas', 'Barra', 'Academia'],
+  legPress:     ['Leg press 45°', 'Pernas', 'Máquina', 'Academia'],
+  extensora:    ['Cadeira extensora', 'Pernas', 'Máquina', 'Academia'],
+  mesaFlexora:  ['Mesa flexora', 'Pernas', 'Máquina', 'Academia'],
+  stiff:        ['Stiff com barra', 'Pernas', 'Barra', 'Academia'],
+  afundo:       ['Afundo com halteres', 'Pernas', 'Halteres', 'Academia'],
+  panturrilha:  ['Panturrilha em pé', 'Pernas', 'Máquina', 'Academia'],
+  agachCorpo:   ['Agachamento com peso do corpo', 'Pernas', 'Nenhum', 'Casa'],
+  afundoAlt:    ['Afundo alternado', 'Pernas', 'Nenhum', 'Casa'],
+  agachBulg:    ['Agachamento búlgaro com cadeira', 'Pernas', 'Banco', 'Casa'],
+  agachSalto:   ['Agachamento com salto', 'Pernas', 'Nenhum', 'Casa'],
+  panturrDegrau:['Panturrilha em pé no degrau', 'Pernas', 'Nenhum', 'Casa'],
+  elevPelvica:  ['Elevação pélvica com barra', 'Glúteos', 'Barra', 'Academia'],
+  ponte:        ['Ponte de glúteos', 'Glúteos', 'Nenhum', 'Casa'],
+  prancha:      ['Prancha', 'Abdômen', 'Nenhum', 'Casa'],
+  pranchaLat:   ['Prancha lateral', 'Abdômen', 'Nenhum', 'Casa'],
+  abdReto:      ['Abdominal reto', 'Abdômen', 'Nenhum', 'Casa'],
+  elevPernas:   ['Elevação de pernas', 'Abdômen', 'Nenhum', 'Calistenia'],
+  burpee:       ['Burpee', 'Corpo', 'Nenhum', 'Funcional'],
+};
+const T30 = '3 séries de 30 s';
+const TEMPLATES = [
+  { id: 'abc', name: 'ABC', level: 'Academia', days: [0, 2, 4],
+    sub: 'Peito e tríceps · Costas e bíceps · Pernas e ombros',
+    workouts: [
+      { name: 'Treino A: Peito e Tríceps', ex: [['supinoReto','4x10'],['supinoIncl','3x12'],['crucifixo','3x12'],['triPulley','3x12'],['triTesta','3x12']] },
+      { name: 'Treino B: Costas e Bíceps', ex: [['puxadaFrontal','4x10'],['remadaCurv','3x10'],['remadaBaixa','3x12'],['roscaDireta','3x12'],['roscaMartelo','3x12']] },
+      { name: 'Treino C: Pernas e Ombros', ex: [['agachLivre','4x10'],['legPress','3x12'],['mesaFlexora','3x12'],['desenvHalt','3x10'],['elevLateral','3x12'],['panturrilha','4x15']] },
+    ] },
+  { id: 'ppl', name: 'Push / Pull / Legs', level: 'Academia', days: [0, 2, 4],
+    sub: 'Empurrar · Puxar · Pernas',
+    workouts: [
+      { name: 'Push: Empurrar', ex: [['supinoReto','4x8'],['desenvHalt','3x10'],['supinoIncl','3x10'],['elevLateral','3x12'],['triPulley','3x12']] },
+      { name: 'Pull: Puxar',    ex: [['puxadaFrontal','4x10'],['remadaCurv','4x8'],['remadaUni','3x10'],['facePull','3x15'],['roscaDireta','3x10'],['roscaMartelo','3x12']] },
+      { name: 'Legs: Pernas',   ex: [['agachLivre','4x8'],['stiff','3x10'],['legPress','3x12'],['extensora','3x12'],['mesaFlexora','3x12'],['panturrilha','4x15']] },
+    ] },
+  { id: 'upper-lower', name: 'Superior / Inferior', level: 'Academia', days: [0, 1, 3, 4],
+    sub: '4 treinos: parte de cima e parte de baixo, duas vezes por semana',
+    workouts: [
+      { name: 'Superior A', ex: [['supinoReto','4x8'],['remadaCurv','4x8'],['desenvHalt','3x10'],['puxadaFrontal','3x10'],['roscaDireta','3x12'],['triPulley','3x12']] },
+      { name: 'Inferior A', ex: [['agachLivre','4x8'],['stiff','3x10'],['legPress','3x12'],['mesaFlexora','3x12'],['panturrilha','4x15'],['abdReto','3x20']] },
+      { name: 'Superior B', ex: [['supinoIncl','4x10'],['remadaBaixa','4x10'],['elevLateral','3x12'],['remadaUni','3x10'],['roscaMartelo','3x12'],['triTesta','3x12']] },
+      { name: 'Inferior B', ex: [['legPress','4x12'],['afundo','3x10'],['extensora','3x12'],['elevPelvica','3x10'],['panturrilha','4x15'],['prancha',T30]] },
+    ] },
+  { id: 'full-body', name: 'Corpo inteiro', level: 'Academia', days: [0, 2, 4],
+    sub: '3 treinos que trabalham o corpo todo, ótimo para começar',
+    workouts: [
+      { name: 'Corpo inteiro A', ex: [['agachLivre','3x8'],['supinoReto','3x8'],['remadaCurv','3x8'],['desenvHalt','3x10'],['prancha',T30]] },
+      { name: 'Corpo inteiro B', ex: [['legPress','3x10'],['supinoIncl','3x10'],['puxadaFrontal','3x10'],['stiff','3x10'],['roscaAlt','3x12'],['abdReto','3x20']] },
+      { name: 'Corpo inteiro C', ex: [['afundo','3x10'],['flexao','3x12'],['remadaBaixa','3x12'],['elevLateral','3x12'],['triPulley','3x12'],['elevPernas','3x12']] },
+    ] },
+  { id: 'casa', name: 'Em casa', level: 'Casa', days: [0, 2, 4],
+    sub: 'Só com o peso do corpo (uma cadeira ajuda)',
+    workouts: [
+      { name: 'Treino A: Parte superior',   ex: [['flexao','4x12'],['flexaoDiam','3x10'],['mergCadeira','3x12'],['flexaoPike','3x8'],['superman','3x15'],['prancha',T30]] },
+      { name: 'Treino B: Pernas e glúteos', ex: [['agachCorpo','4x15'],['afundoAlt','3x12'],['ponte','4x15'],['agachBulg','3x10'],['panturrDegrau','4x20'],['abdReto','3x20']] },
+      { name: 'Treino C: Corpo todo',       ex: [['agachSalto','3x12'],['flexao','3x10'],['superman','3x15'],['pranchaLat',T30],['elevPernas','3x12'],['burpee','3x10']] },
+    ] },
+];
+
+const tplById = id => TEMPLATES.find(t => t.id === id);
+const tplCountEx = t => new Set(t.workouts.flatMap(w => w.ex.map(e => e[0]))).size;
+let tplState = { id: null, days: [] };
+
+/* Cria (ou reaproveita, por nome) o exercício do modelo na biblioteca. */
+function ensureTemplateExercise(key, sets) {
+  const [rawName, muscle, equip, category] = TPL_EX[key];
+  const name = fixPt(rawName);
+  const found = library.find(e => norm(e.name) === norm(name));
+  if (found) return found.id;
+  let id = 'tpl-' + slugify(name);
+  if (library.some(e => e.id === id)) id += '-' + Math.random().toString(36).slice(2, 5);
+  library.push({
+    id, name, muscle: canonMuscle(muscle), color: groupMeta(muscle).color,
+    sets, tip: '', category, equipment: canonEquip(equip),
+  });
+  return id;
+}
+
+function applyTemplate(tpl, days) {
+  const sorted = [...days].sort((a, b) => a - b);
+  let added = 0, skipped = 0;
+  tpl.workouts.forEach((w, i) => {
+    const day = sorted[i];
+    const list = workouts[day] || [];
+    if (list.some(x => norm(x.name) === norm(w.name))) { skipped++; return; }
+    const exIds = w.ex.map(([key, sets]) => ensureTemplateExercise(key, sets));
+    workouts[day] = list.concat([{ name: w.name, exIds }]);
+    added++;
+  });
+  save(K_LIB, library); save(K_WORKOUTS, workouts);
+  selDay = sorted[0];
+  renderStats(); renderChecklist(); renderWelcome(); renderDayStrip(); renderDayContent(); renderLibrary();
+  updateBackupBadge();
+  return { added, skipped };
+}
+
+/* ── Interface dos modelos ───────────────────────────────────────────────── */
+function openTemplates() {
+  tplState = { id: null, days: [] };
+  renderTemplates();
+  document.getElementById('overlay-templates').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTemplates() {
+  document.getElementById('overlay-templates').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function pickTemplate(id) {
+  tplState = { id, days: [...tplById(id).days] };
+  renderTemplates();
+  document.getElementById('tpl-body').scrollTop = 0;
+}
+function tplBack() { tplState = { id: null, days: [] }; renderTemplates(); }
+function toggleTplDay(i) {
+  const t = tplById(tplState.id), at = tplState.days.indexOf(i);
+  if (at >= 0) tplState.days.splice(at, 1);
+  else if (tplState.days.length < t.workouts.length) tplState.days.push(i);
+  else { showToast(`Este modelo tem ${t.workouts.length} treinos. Desmarque um dia antes.`); return; }
+  renderTemplates();
+}
+function confirmTemplate() {
+  const t = tplById(tplState.id);
+  if (!t || tplState.days.length !== t.workouts.length) return;
+  const { added, skipped } = applyTemplate(t, tplState.days);
+  closeTemplates();
+  switchTab('treinos');
+  showToast(skipped
+    ? `${added} treino${added !== 1 ? 's' : ''} adicionado${added !== 1 ? 's' : ''}; ${skipped} já existia${skipped !== 1 ? 'm' : ''}.`
+    : `Modelo "${t.name}" aplicado.`);
+}
+
+function renderTemplates() {
+  const body = document.getElementById('tpl-body');
+  const title = document.getElementById('tpl-title');
+  const back  = document.getElementById('tpl-back');
+
+  if (!tplState.id) {
+    title.textContent = 'Modelos de treino';
+    back.style.display = 'none';
+    body.innerHTML = `
+      <p class="tpl-intro">Escolha um modelo e o app cria os exercícios e os treinos nos dias que você escolher. Depois você pode editar tudo.</p>
+      ${TEMPLATES.map(t => `
+        <button type="button" class="tpl-card" onclick="pickTemplate('${t.id}')">
+          <div class="tpl-card-head"><strong>${esc(t.name)}</strong><span class="tpl-tag">${t.workouts.length} treinos</span></div>
+          <div class="tpl-card-sub">${esc(t.sub)}</div>
+          <div class="tpl-card-meta"><i class="ph ph-barbell"></i> ${tplCountEx(t)} exercícios · ${esc(t.level)}</div>
+        </button>`).join('')}
+      <p class="tpl-note">Modelos genéricos, pensados como ponto de partida. Não substituem a orientação de um profissional de educação física.</p>`;
+    return;
+  }
+
+  const t = tplById(tplState.id);
+  const need = t.workouts.length;
+  const picked = [...tplState.days].sort((a, b) => a - b);
+  title.textContent = t.name;
+  back.style.display = '';
+  const ready = picked.length === need;
+
+  body.innerHTML = `
+    <p class="tpl-intro">${esc(t.sub)}</p>
+    <div class="tpl-days-title">Em quais dias da semana? <span class="${ready ? 'ok' : ''}">${picked.length}/${need}</span></div>
+    <div class="tpl-days" role="group" aria-label="Dias da semana">
+      ${DAYS_SHORT.map((d, i) => {
+        const on = picked.includes(i), has = (workouts[i] || []).length > 0;
+        return `<button type="button" class="tpl-day ${on ? 'on' : ''}" aria-pressed="${on}" onclick="toggleTplDay(${i})">
+          <span>${d}</span>${has ? '<i class="tpl-day-dot" title="Já tem treino"></i>' : ''}</button>`;
+      }).join('')}
+    </div>
+    <div class="tpl-hint">${ready
+      ? 'Os treinos entram na ordem: o primeiro no primeiro dia escolhido, e assim por diante.'
+      : `Escolha ${need} dias. ${picked.length ? `Faltam ${need - picked.length}.` : ''}`}
+      ${picked.some(i => (workouts[i] || []).length) ? '<br>Dias com ponto já têm treino: o modelo será adicionado junto.' : ''}</div>
+    <div class="tpl-workouts">
+      ${t.workouts.map((w, i) => `
+        <div class="tpl-wk">
+          <div class="tpl-wk-head"><strong>${esc(w.name)}</strong><span>${picked[i] != null ? esc(DAYS_FULL[picked[i]]) : '—'}</span></div>
+          <ul>${w.ex.map(([key, sets]) => `<li><span>${esc(fixPt(TPL_EX[key][0]))}</span><em>${esc(sets)}</em></li>`).join('')}</ul>
+        </div>`).join('')}
+    </div>
+    <button type="button" class="btn-accent tpl-apply" ${ready ? '' : 'disabled'} onclick="confirmTemplate()">
+      <i class="ph ph-check"></i> Aplicar modelo
+    </button>`;
+}
+
+/* ── Boas-vindas (cartão dentro da página, sem pop-up) e privacidade ─────── */
+const isFreshUser = () => !library.length && !Object.keys(workouts).length && !history.length;
+const welcomeVisible = () => !localStorage.getItem(K_WELCOME) && isFreshUser();
+function renderWelcome() {
+  const el = document.getElementById('welcome-card');
+  if (!el) return;
+  if (!welcomeVisible()) { el.innerHTML = ''; renderChecklist(); return; }
+  el.innerHTML = `
+    <div class="welcome-card">
+      <div class="welcome-title">Bem-vindo ao Meus Treinos</div>
+      <ul class="welcome-list">
+        <li><i class="ph-bold ph-lock-simple"></i><span><strong>Seus dados ficam só no seu aparelho.</strong> Sem cadastro e sem servidor.</span></li>
+        <li><i class="ph-bold ph-database"></i><span><strong>Faça backup de vez em quando.</strong> Se limpar o navegador ou trocar de celular, os treinos se perdem. O ícone de banco de dados, no topo, gera o arquivo.</span></li>
+      </ul>
+      <div class="welcome-actions">
+        <button type="button" class="btn-accent" onclick="openTemplates()"><i class="ph ph-stack"></i> Começar com um modelo</button>
+        <button type="button" class="btn-ghost" onclick="dismissWelcome()">Entendi</button>
+      </div>
+    </div>`;
+}
+function dismissWelcome() {
+  localStorage.setItem(K_WELCOME, '1');
+  renderWelcome();
+}
+/* Quem já usa o app não vê as boas-vindas, mesmo se apagar tudo depois. */
+function initWelcome() {
+  if (!localStorage.getItem(K_WELCOME) && (library.length || Object.keys(workouts).length || history.length)) {
+    localStorage.setItem(K_WELCOME, '1');
+  }
+  renderWelcome();
+}
+function openAbout() {
+  document.getElementById('overlay-about').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAbout() {
+  document.getElementById('overlay-about').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    BOOT
    ═══════════════════════════════════════════════════════════════════════════ */
 (function init() {
@@ -624,6 +880,7 @@ function undoImport() {
   renderLibrary();
   renderTimerPresets();
   updateBackupBadge();
+  initWelcome();
   updateTimerUI();
 })();
 
@@ -792,6 +1049,7 @@ function renderChecklist() {
             ${!s.done ? '<span class="step-arrow">→</span>' : ''}
           </div>`).join('')}
       </div>
+      ${(!s2 && !welcomeVisible()) ? `<button type="button" class="checklist-tpl" onclick="openTemplates()"><i class="ph ph-stack"></i> Ou comece com um modelo pronto</button>` : ''}
     </div>`;
 }
 
@@ -1033,6 +1291,7 @@ function renderDayContent() {
       </button>
     </div>` : '';
 
+  const tplBtn = `<button class="btn-ghost" onclick="openTemplates()"><i class="ph ph-stack"></i> Modelos prontos</button>`;
   const pasteBtn = clipboardWorkout ? `
     <button class="btn-ghost" onclick="pasteWorkout(${selDay})">
       <i class="ph ph-clipboard"></i> Colar "${clipboardWorkout.name}" aqui
@@ -1046,6 +1305,7 @@ function renderDayContent() {
         <button class="btn-ghost" onclick="openWorkoutModal(${selDay},null)">
           <i class="ph ph-pencil-simple"></i> Criar treino
         </button>
+        ${tplBtn}
         ${pasteBtn}
       </div>`;
     reanimate(c);
@@ -1097,6 +1357,7 @@ function renderDayContent() {
       <button class="btn-ghost" onclick="openWorkoutModal(${selDay},null)">
         <i class="ph ph-plus"></i> Novo treino
       </button>
+      ${tplBtn}
       ${pasteBtn}
     </div>`;
   reanimate(c);

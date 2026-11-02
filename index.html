@@ -68,6 +68,7 @@
         "Sequência de treinos considerando apenas dias úteis programados",
         "Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios",
         "Aviso de fim de cronômetro por som, vibração, flash e notificação",
+        "Modelos de treino prontos (ABC, Push/Pull/Legs, Superior/Inferior, Corpo inteiro e Em casa)",
         "Registro de carga e repetições por exercício, já preenchido com a última vez",
         "Backup dos dados em arquivo (exportar e importar)",
         "Funciona offline e pode ser instalado como app (PWA)",
@@ -149,6 +150,7 @@
         <li>Histórico com calendário de dias treinados, perdidos e de descanso</li>
         <li>Catálogo com mais de 5 mil variações de exercícios</li>
         <li>Timer de descanso com aviso sonoro, vibração e notificação</li>
+        <li>Modelos de treino prontos para começar rápido</li>
         <li>Registro de carga e repetições, com a última vez já preenchida</li>
         <li>Backup dos dados em arquivo, para guardar ou levar para outro aparelho</li>
       </ul>
@@ -159,6 +161,7 @@
   <!-- ══ SEÇÃO: TREINOS ══════════════════════════════════════════════════ -->
   <section id="sec-treinos" class="section active" aria-labelledby="h-treinos">
     <h2 id="h-treinos" class="sr-only">Treinos da semana</h2>
+    <div id="welcome-card"></div>
     <div id="checklist-card"></div>
     <div class="day-strip" id="day-strip"></div>
     <div id="day-content"></div>
@@ -263,6 +266,17 @@
   </section>
 
   </main>
+
+  <footer class="app-footer">
+    <p>Seus dados ficam só neste aparelho.</p>
+    <div class="footer-links">
+      <button type="button" class="link-btn" onclick="openAbout()">Privacidade e dados</button>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/Augusto-dev0/Meus-treinos/issues/new" target="_blank" rel="noopener noreferrer">Enviar feedback</a>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/Augusto-dev0/Meus-treinos" target="_blank" rel="noopener noreferrer">Código no GitHub</a>
+    </div>
+  </footer>
 
 </div><!-- .app -->
 
@@ -469,6 +483,41 @@
       <button class="tbtn primary" onclick="saveWorkout()">
         <i class="ph ph-floppy-disk"></i> Salvar treino
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODELOS DE TREINO ═══════════════════════════════════════════════ -->
+<div id="overlay-templates" class="overlay" onclick="if(event.target===this)closeTemplates()">
+  <div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="tpl-title">
+    <div class="modal-header">
+      <div class="tpl-head-left">
+        <button class="modal-close tpl-back" id="tpl-back" onclick="tplBack()" aria-label="Voltar" style="display:none"><i class="ph ph-arrow-left"></i></button>
+        <h2 id="tpl-title">Modelos de treino</h2>
+      </div>
+      <button class="modal-close" onclick="closeTemplates()" aria-label="Fechar"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body" id="tpl-body"></div>
+  </div>
+</div>
+
+<!-- ══ PRIVACIDADE E DADOS ═════════════════════════════════════════════ -->
+<div id="overlay-about" class="overlay" onclick="if(event.target===this)closeAbout()">
+  <div class="modal" style="max-width:420px" role="dialog" aria-modal="true" aria-labelledby="about-title">
+    <div class="modal-header">
+      <h2 id="about-title">Privacidade e dados</h2>
+      <button class="modal-close" onclick="closeAbout()" aria-label="Fechar"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <ul class="welcome-list">
+        <li><i class="ph-bold ph-lock-simple"></i><span><strong>Tudo fica no seu aparelho.</strong> O app não tem cadastro nem servidor: seus treinos, histórico e medidas não são enviados para a internet.</span></li>
+        <li><i class="ph-bold ph-database"></i><span><strong>O backup é por sua conta.</strong> Se você limpar os dados do navegador, desinstalar o app ou trocar de celular, os dados se perdem. Exporte um arquivo de vez em quando.</span></li>
+        <li><i class="ph-bold ph-chat-circle-text"></i><span><strong>Sugestões e problemas?</strong> Conte pelo link "Enviar feedback" no rodapé.</span></li>
+      </ul>
+      <div class="bk-actions">
+        <button class="btn-accent bk-btn" onclick="closeAbout();openBackupModal()"><i class="ph ph-database"></i> Fazer backup agora</button>
+        <button class="btn-ghost bk-btn" onclick="closeAbout()">Fechar</button>
+      </div>
     </div>
   </div>
 </div>

@@ -1466,3 +1466,80 @@ button.cal-cell:focus-visible span { outline: 2px solid var(--accent); outline-o
 }
 .dd-ex-load { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); }
 .dd-ex-load i { font-size: 12px; }
+
+
+/* ══ Modelos de treino ════════════════════════════════════════════════════ */
+.tpl-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tpl-head-left h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpl-intro { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.tpl-card {
+  width: 100%; text-align: left; cursor: pointer; font-family: 'DM Sans', sans-serif; color: var(--text);
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 13px 14px; display: flex; flex-direction: column; gap: 5px; transition: border-color .14s, transform .14s;
+}
+.tpl-card:hover  { border-color: var(--accent); }
+.tpl-card:active { transform: scale(.985); }
+.tpl-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tpl-card-head strong { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: .5px; font-weight: 400; }
+.tpl-tag { font-size: var(--fs-xs); color: var(--accent); border: 1px solid rgba(200,240,96,.3); border-radius: 20px; padding: 2px 9px; white-space: nowrap; }
+.tpl-card-sub  { font-size: var(--fs-sm); color: var(--muted); line-height: 1.4; }
+.tpl-card-meta { font-size: var(--fs-xs); color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.tpl-note { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; text-align: center; }
+.tpl-days-title { display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-sm); font-weight: 500; }
+.tpl-days-title span { font-size: var(--fs-xs); color: var(--muted); }
+.tpl-days-title span.ok { color: var(--accent); }
+.tpl-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.tpl-day {
+  position: relative; min-height: 46px; border: 1px solid var(--border2); border-radius: var(--r-sm);
+  background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: var(--fs-sm);
+  cursor: pointer; transition: all .13s; padding: 0;
+}
+.tpl-day:hover { border-color: var(--accent); color: var(--text); }
+.tpl-day.on { background: var(--accent); border-color: var(--accent); color: #0a0a0a; font-weight: 600; }
+.tpl-day-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+.tpl-day.on .tpl-day-dot { background: #0a0a0a; }
+.tpl-hint { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; }
+.tpl-workouts { display: flex; flex-direction: column; gap: 8px; }
+.tpl-wk { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; }
+.tpl-wk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.tpl-wk-head strong { font-size: var(--fs-sm); font-weight: 600; min-width: 0; }
+.tpl-wk-head span { font-size: var(--fs-xs); color: var(--accent); white-space: nowrap; }
+.tpl-wk ul { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.tpl-wk li { display: flex; justify-content: space-between; gap: 10px; font-size: var(--fs-xs); color: var(--muted); }
+.tpl-wk li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpl-wk li em { font-style: normal; color: var(--text); flex-shrink: 0; }
+.tpl-apply { width: 100%; justify-content: center; min-height: 44px; position: sticky; bottom: 0; }
+.tpl-apply:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ══ Boas-vindas, rodapé e atalho no checklist ════════════════════════════ */
+.welcome-card {
+  position: relative; background: var(--surface); border: 1px solid rgba(200,240,96,.35);
+  border-radius: var(--r); padding: 16px; margin-bottom: 14px;
+}
+.welcome-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: .5px; margin-bottom: 10px; }
+.welcome-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.welcome-list li { display: flex; gap: 10px; align-items: flex-start; font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.welcome-list li i { color: var(--accent); font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+.welcome-list li strong { color: var(--text); font-weight: 600; }
+.welcome-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.welcome-actions .btn-accent { flex: 1; justify-content: center; min-height: 42px; }
+.welcome-actions .btn-ghost  { flex: 0 1 auto; min-width: 90px; }
+.checklist-tpl {
+  width: 100%; margin-top: 10px; padding: 10px; background: transparent; cursor: pointer;
+  border: 1px dashed var(--border2); border-radius: var(--r-sm); color: var(--accent);
+  font-family: 'DM Sans', sans-serif; font-size: var(--fs-sm); transition: all .14s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.checklist-tpl:hover { border-color: var(--accent); background: rgba(200,240,96,.06); }
+.app-footer { margin-top: 2.25rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; font-size: var(--fs-xs); color: var(--muted); }
+.app-footer p { margin-bottom: 6px; }
+.footer-links { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 10px; }
+.footer-links a, .link-btn {
+  color: var(--muted); text-decoration: underline; text-underline-offset: 3px; background: none; border: none;
+  font: inherit; cursor: pointer; padding: 6px 2px;
+}
+.footer-links a:hover, .link-btn:hover { color: var(--accent); }
+@media (max-width: 360px) {
+  .tpl-days { gap: 3px; }
+  .tpl-day  { min-height: 42px; font-size: 11px; }
+}
