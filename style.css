@@ -1420,3 +1420,49 @@ button.cal-cell:focus-visible span { outline: 2px solid var(--accent); outline-o
 @media (max-width: 360px) {
   .bk-summary { grid-template-columns: repeat(2, 1fr); }
 }
+
+
+/* ══ Carga e repetições no treino ativo ═══════════════════════════════════ */
+.active-log {
+  width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 16px;
+  padding: 12px; animation: fadeSlide .35s ease both;
+}
+.log-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.log-field { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.log-field label { font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: .6px; text-align: center; }
+.log-stepper {
+  display: flex; align-items: center; gap: 4px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: var(--r-sm); padding: 3px; min-width: 0;
+  transition: border-color .14s;
+}
+.log-stepper:focus-within { border-color: var(--accent); }
+.log-stepper input {
+  flex: 1; min-width: 0; width: 100%; background: transparent; border: none; outline: none;
+  color: var(--text); text-align: right; font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px; letter-spacing: .5px; padding: 2px 0;
+}
+.log-stepper input::placeholder { color: var(--muted); opacity: .6; }
+.log-unit { font-size: var(--fs-xs); color: var(--muted); flex-shrink: 0; min-width: 20px; }
+.log-step {
+  width: 32px; height: 32px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 6px;
+  background: transparent; color: var(--muted); cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
+}
+.log-step:hover  { border-color: var(--accent); color: var(--accent); }
+.log-step:active { transform: scale(.92); background: var(--surface); }
+.log-last { font-size: var(--fs-xs); color: var(--muted); text-align: center; }
+@media (pointer: coarse) {
+  .log-step { width: 38px; height: 38px; }
+  .log-stepper input { font-size: 26px; }
+}
+@media (max-width: 360px) {
+  .log-fields { grid-template-columns: 1fr; }
+}
+@media (max-height: 560px) {
+  .active-log { padding: 8px 10px; gap: 5px; }
+  .log-step { width: 30px; height: 30px; }
+  .log-stepper input { font-size: 20px; }
+}
+.dd-ex-load { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); }
+.dd-ex-load i { font-size: 12px; }

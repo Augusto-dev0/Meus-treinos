@@ -68,6 +68,7 @@
         "Sequência de treinos considerando apenas dias úteis programados",
         "Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios",
         "Aviso de fim de cronômetro por som, vibração, flash e notificação",
+        "Registro de carga e repetições por exercício, já preenchido com a última vez",
         "Backup dos dados em arquivo (exportar e importar)",
         "Funciona offline e pode ser instalado como app (PWA)",
         "Dados salvos apenas no navegador, sem cadastro"
@@ -148,6 +149,7 @@
         <li>Histórico com calendário de dias treinados, perdidos e de descanso</li>
         <li>Catálogo com mais de 5 mil variações de exercícios</li>
         <li>Timer de descanso com aviso sonoro, vibração e notificação</li>
+        <li>Registro de carga e repetições, com a última vez já preenchida</li>
         <li>Backup dos dados em arquivo, para guardar ou levar para outro aparelho</li>
       </ul>
       <p>Ative o JavaScript no navegador para usar o app. Seus dados ficam salvos apenas no seu dispositivo.</p>
@@ -304,6 +306,29 @@
       <div class="active-ex-sets" id="active-ex-sets">3x12</div>
       <div class="active-ex-tip"  id="active-ex-tip"></div>
       <div class="active-ex-muscle" id="active-ex-muscle"></div>
+    </div>
+    <div class="active-log" id="active-log" style="display:none">
+      <div class="log-fields">
+        <div class="log-field">
+          <label for="log-kg">Carga</label>
+          <div class="log-stepper">
+            <button type="button" class="log-step" onclick="stepLog('kg',-2.5)" aria-label="Diminuir carga"><i class="ph-bold ph-minus"></i></button>
+            <input id="log-kg" type="text" inputmode="decimal" placeholder="—" autocomplete="off" maxlength="6" oninput="onLogInput()" aria-label="Carga em quilos">
+            <span class="log-unit">kg</span>
+            <button type="button" class="log-step" onclick="stepLog('kg',2.5)" aria-label="Aumentar carga"><i class="ph-bold ph-plus"></i></button>
+          </div>
+        </div>
+        <div class="log-field">
+          <label for="log-reps">Repetições</label>
+          <div class="log-stepper">
+            <button type="button" class="log-step" onclick="stepLog('reps',-1)" aria-label="Diminuir repetições"><i class="ph-bold ph-minus"></i></button>
+            <input id="log-reps" type="text" inputmode="numeric" placeholder="—" autocomplete="off" maxlength="3" oninput="onLogInput()" aria-label="Repetições">
+            <span class="log-unit">rep</span>
+            <button type="button" class="log-step" onclick="stepLog('reps',1)" aria-label="Aumentar repetições"><i class="ph-bold ph-plus"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="log-last" id="log-last"></div>
     </div>
     <div class="active-nav">
       <button class="tbtn" id="active-prev" onclick="activeNav(-1)">

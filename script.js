@@ -424,6 +424,11 @@ function sanitizeBackup(raw) {
         sets: bkStr(x && x.sets, 30), color: bkColor(x && x.color),
       };
       if (x && x.removed) o.removed = true;
+      const sid = x && x.id ? bkId(x.id) : '';
+      if (sid) o.id = sid;
+      const kg = Number(x && x.kg), rp = Math.round(Number(x && x.reps));
+      if (x && x.kg != null && x.kg !== '' && Number.isFinite(kg) && kg >= 0) o.kg = Math.round(Math.min(kg, 999) * 100) / 100;
+      if (x && x.reps != null && x.reps !== '' && Number.isFinite(rp) && rp > 0) o.reps = Math.min(rp, 999);
       return o;
     });
     const o = {
@@ -1335,12 +1340,110 @@ function saveWorkout() {
 /* ═══════════════════════════════════════════════════════════════════════════
    ACTIVE WORKOUT MODE
    ═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARGA E REPETIÇÕES (uma linha por exercício)
+   Durante o treino cada exercício mostra "Carga (kg)" e "Repetições", já
+   preenchidos com a última vez em que você fez aquele exercício. Os valores
+   são gravados no histórico (dentro da "foto" do exercício) quando o treino
+   é concluído. Campos vazios = nada é gravado. Cardio e mobilidade não usam.
+   ═══════════════════════════════════════════════════════════════════════════ */
+let activeLog = {};
+const NO_LOAD_GROUPS = ['Cardio', 'Mobilidade'];
+const wantsLoad = ex => !NO_LOAD_GROUPS.includes(canonMuscle(ex.muscle));
+
+function parseKg(v) {
+  const n = parseFloat(String(v == null ? '' : v).replace(',', '.'));
+  return Number.isFinite(n) && n >= 0 ? Math.round(Math.min(n, 999) * 100) / 100 : null;
+}
+function parseReps(v) {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : null;
+}
+const fmtKg = n => String(n).replace('.', ',');
+function fmtLoad(kg, reps) {
+  if (kg != null && reps != null) return `${fmtKg(kg)} kg × ${reps}`;
+  if (kg != null) return `${fmtKg(kg)} kg`;
+  if (reps != null) return `${reps} rep${reps !== 1 ? 's' : ''}`;
+  return '';
+}
+/* "4x10" → 10 (usado como sugestão no campo de repetições) */
+function plannedReps(ex) {
+  const m = String(ex.sets || '').match(/\d+\s*[x×]\s*(\d+)/i);
+  return m ? m[1] : '';
+}
+/* Último registro de carga/reps deste exercício (mais recente primeiro). */
+function lastLoadFor(ex) {
+  const n = norm(ex.name);
+  for (const h of history) {
+    if (!Array.isArray(h.exSnap)) continue;
+    const hit = h.exSnap.find(x => x && (x.kg != null || x.reps != null) &&
+      ((x.id && x.id === ex.id) || norm(x.name) === n));
+    if (hit) return { kg: hit.kg != null ? hit.kg : null, reps: hit.reps != null ? hit.reps : null, date: h.date };
+  }
+  return null;
+}
+function currentActiveEx() {
+  return library.find(e => e.id === activeWk.exIds[activeCur]);
+}
+function renderLoadPanel(ex) {
+  const box = document.getElementById('active-log');
+  if (!wantsLoad(ex)) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const last = lastLoadFor(ex);
+  if (!activeLog[ex.id]) {
+    activeLog[ex.id] = {
+      kg:   last && last.kg   != null ? fmtKg(last.kg)    : '',
+      reps: last && last.reps != null ? String(last.reps) : '',
+    };
+  }
+  document.getElementById('log-kg').value   = activeLog[ex.id].kg;
+  document.getElementById('log-reps').value = activeLog[ex.id].reps;
+  document.getElementById('log-reps').placeholder = plannedReps(ex) || '—';
+  document.getElementById('log-last').textContent = last
+    ? `Última vez: ${fmtLoad(last.kg, last.reps)} · ${bkFmtDate(last.date)}`
+    : 'Primeira vez registrando este exercício';
+}
+function onLogInput() {
+  const ex = currentActiveEx(); if (!ex || !wantsLoad(ex)) return;
+  activeLog[ex.id] = {
+    kg:   document.getElementById('log-kg').value,
+    reps: document.getElementById('log-reps').value,
+  };
+}
+/* Botões − e +: carga anda de 2,5 em 2,5 kg; repetições de 1 em 1. */
+function stepLog(field, delta) {
+  const ex = currentActiveEx(); if (!ex) return;
+  const input = document.getElementById(field === 'kg' ? 'log-kg' : 'log-reps');
+  let cur = field === 'kg' ? parseKg(input.value) : parseReps(input.value);
+  if (cur == null) {
+    if (delta < 0) return;
+    cur = field === 'reps' ? (parseInt(plannedReps(ex), 10) || 0) : 0;
+    if (field === 'reps' && cur) delta = 0; /* primeiro toque só aceita a sugestão do plano */
+  }
+  let next = Math.round((cur + delta) * 100) / 100;
+  if (field === 'reps') next = Math.max(1, Math.min(999, next));
+  else next = Math.max(0, Math.min(999, next));
+  input.value = field === 'kg' ? fmtKg(next) : String(next);
+  onLogInput();
+}
+/* Valores digitados → campos gravados no histórico */
+function loadFieldsFor(ex) {
+  const e = activeLog[ex.id];
+  if (!e || !wantsLoad(ex)) return {};
+  const out = {};
+  const kg = parseKg(e.kg), reps = parseReps(e.reps);
+  if (kg != null) out.kg = kg;
+  if (reps != null) out.reps = reps;
+  return out;
+}
+
 function startActiveWorkout(day, wi) {
   const w = workouts[day][wi];
   const validIds = w.exIds.filter(id=>library.find(e=>e.id===id));
   if(!validIds.length){alert('Nenhum exercício válido neste treino.');return;}
   activeWk    = {name:w.name, exIds:validIds, dayIndex:day, workoutName:w.name};
   activeCur   = 0;
+  activeLog   = {};
   activeStart = Date.now();
   stopRestTimer();
   clearInterval(elapsedInterval);
@@ -1383,6 +1486,8 @@ function renderActiveExercise(dir) {
   document.getElementById('active-ex-muscle').textContent  = ex.muscle;
   document.getElementById('active-ex-muscle').style.color  = ex.color;
 
+  renderLoadPanel(ex);
+
   document.getElementById('active-prev').disabled = activeCur===0;
   document.getElementById('active-next').innerHTML =
     activeCur===ids.length-1
@@ -1410,7 +1515,7 @@ function finishWorkout() {
      apagado da biblioteca depois. */
   const exSnap = activeWk.exIds.map(id => {
     const ex = library.find(e => e.id === id);
-    return ex ? { name: ex.name, muscle: ex.muscle, sets: ex.sets || '', color: ex.color } : null;
+    return ex ? { id: ex.id, name: ex.name, muscle: ex.muscle, sets: ex.sets || '', color: ex.color, ...loadFieldsFor(ex) } : null;
   }).filter(Boolean);
 
   const entry = {
@@ -1840,6 +1945,7 @@ function renderDayDetailEntry(h) {
           <div class="dd-ex-meta">
             <div class="dd-ex-name">${esc(e.name)}</div>
             ${e.muscle ? `<div class="dd-ex-sub" style="color:${esc(e.color || 'var(--muted)')}">${esc(e.muscle)}</div>` : ''}
+            ${fmtLoad(e.kg != null ? e.kg : null, e.reps != null ? e.reps : null) ? `<div class="dd-ex-load"><i class="ph-bold ph-barbell"></i> ${esc(fmtLoad(e.kg != null ? e.kg : null, e.reps != null ? e.reps : null))}</div>` : ''}
           </div>
           ${e.sets ? `<span class="dd-ex-sets">${esc(e.sets)}</span>` : ''}
         </div>`).join('')}

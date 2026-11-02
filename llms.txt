@@ -14,6 +14,7 @@ O site é um aplicativo de página única: existe uma única URL pública, e as 
 
 - Treinos por dia da semana, com copiar e colar treino entre dias e marcação de dias de descanso
 - Modo treino ativo, exercício por exercício, com cronômetro e timer de descanso (30s, 1min, 1m30)
+- Registro de carga (kg) e repetições por exercício durante o treino, já preenchido com a última vez; aparece nos detalhes do histórico
 - Histórico de treinos concluídos com detalhes, edição e calendário mensal (treinado, hoje, perdido, descanso)
 - Sequência (streak) que conta apenas dias úteis com treino programado
 - Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios, filtráveis por categoria, grupo muscular e equipamento

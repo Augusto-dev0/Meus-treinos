@@ -43,13 +43,14 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Transição lateral ao avançar/voltar entre exercícios
 - Barra de progresso e cronômetro em tempo real
 - Timer de descanso rápido embutido (30s / 1min / 1m30)
+- **Registro de carga e repetições**: cada exercício mostra "Carga (kg)" e "Repetições", **já preenchidos com a última vez** que você fez aquele exercício. Ajuste digitando ou com os botões − e + (a carga anda de 2,5 em 2,5 kg; as repetições, de 1 em 1) e siga. Campo vazio não grava nada, então exercícios de peso do corpo podem ter só repetições. Cardio e mobilidade não usam o painel
 - Ao concluir, salva automaticamente no histórico com duração total e mostra uma **animação de conclusão**: anel que se completa, troféu, ondas de impacto, confetes (explosão no troféu, canhões nos cantos e chuva leve), título com brilho e números do resumo que sobem contando. Respeita a preferência de menos movimento do sistema
 
 ### Histórico
 
 - Lista de todos os treinos concluídos com data, dia e exercícios
 - **Toque em um treino (ou em um dia do calendário) para abrir o card de detalhes**: data por extenso, nome do treino, duração (minutos ou horas), horário de conclusão, nº de exercícios, grupos musculares e a lista completa com séries/repetições. Se houve mais de um treino no dia, mostra também o total do dia
-- Os detalhes guardam uma "foto" dos exercícios no momento do treino, então continuam corretos mesmo se você editar ou apagar o exercício da biblioteca depois
+- Os detalhes guardam uma "foto" dos exercícios no momento do treino (incluindo carga e repetições), então continuam corretos mesmo se você editar ou apagar o exercício da biblioteca depois
 - Edição de registros (nome, data, duração, dia da semana)
 - Contador de **sequência** (ícone de chama) — considera apenas dias úteis com treino programado na semana; folgas, fins de semana e **dias de descanso marcados** não quebram a sequência
 - Botão **Calendário** em destaque no topo do histórico, com o nome escrito
