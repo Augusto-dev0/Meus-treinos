@@ -617,7 +617,7 @@ const K_WELCOME = 'mt-welcome-seen-v1';
 /* E-mail que recebe o feedback. Enquanto estiver vazio, o link "Enviar feedback"
    fica escondido. Preencha entre aspas, por exemplo: 'contato@exemplo.com'.
    O link é montado aqui (não escrito no HTML), o que dificulta a coleta por robôs. */
-const FEEDBACK_EMAIL = '';
+const FEEDBACK_EMAIL = 'luizaugusto.contato9@gmail.com';
 
 function initFeedbackLink() {
   const mail = String(FEEDBACK_EMAIL || '').trim();
