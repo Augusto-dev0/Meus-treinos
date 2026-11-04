@@ -44,7 +44,8 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Transição lateral ao avançar/voltar entre exercícios
 - Barra de progresso e cronômetro em tempo real
 - Timer de descanso rápido embutido (30s / 1min / 1m30)
-- **Registro de carga e repetições**: cada exercício mostra "Carga (kg)" e "Repetições", **já preenchidos com a última vez** que você fez aquele exercício. Ajuste digitando ou com os botões − e + (a carga anda de 2,5 em 2,5 kg; as repetições, de 1 em 1) e siga. Campo vazio não grava nada, então exercícios de peso do corpo podem ter só repetições. Cardio e mobilidade não usam o painel
+- **Registro de carga e repetições**: cada exercício mostra "Carga (kg)" e "Repetições", **já preenchidos com a última vez** que você fez aquele exercício. Ajuste digitando ou com os botões − e + (a carga anda de 2,5 em 2,5 kg; as repetições, de 1 em 1) e siga. Campo vazio não grava nada, então exercícios de peso do corpo podem ter só repetições. Cardio e mobilidade não usam o painel. Carga 0 não é gravada (peso do corpo)
+- **Recordes pessoais**: ao concluir, o app compara com o histórico daquele exercício e avisa "Novo recorde pessoal!", listando o que foi batido (carga maior que todas as anteriores; mesma carga com mais repetições; ou, em exercícios de peso do corpo, mais repetições). A primeira marcação de um exercício nunca conta como recorde. No card de detalhes, cada exercício mostra a **diferença da vez anterior** (por exemplo "+2,5 kg") e o selo **Recorde** quando aquele treino bateu um
 - Ao concluir, salva automaticamente no histórico com duração total e mostra uma **animação de conclusão**: anel que se completa, troféu, ondas de impacto, confetes (explosão no troféu, canhões nos cantos e chuva leve), título com brilho e números do resumo que sobem contando. Respeita a preferência de menos movimento do sistema
 
 ### Histórico
@@ -52,7 +53,7 @@ App pessoal de gerenciamento de treinos, 100% client-side, sem backend e sem cad
 - Lista de todos os treinos concluídos com data, dia e exercícios
 - **Toque em um treino (ou em um dia do calendário) para abrir o card de detalhes**: data por extenso, nome do treino, duração (minutos ou horas), horário de conclusão, nº de exercícios, grupos musculares e a lista completa com séries/repetições. Se houve mais de um treino no dia, mostra também o total do dia
 - Os detalhes guardam uma "foto" dos exercícios no momento do treino (incluindo carga e repetições), então continuam corretos mesmo se você editar ou apagar o exercício da biblioteca depois
-- Edição de registros (nome, data, duração, dia da semana)
+- Edição de registros (nome, data, duração, dia da semana) e das **cargas e repetições** de cada exercício, o que permite preencher de memória treinos antigos (registros anteriores ao recurso ganham a lista de exercícios a partir da biblioteca assim que você digita uma carga)
 - Contador de **sequência** (ícone de chama) — considera apenas dias úteis com treino programado na semana; folgas, fins de semana e **dias de descanso marcados** não quebram a sequência
 - Botão **Calendário** em destaque no topo do histórico, com o nome escrito
 - **Calendário mensal** com marcação por cor: verde = treinado · ciano (pontinho) = hoje · vermelho = dia perdido (treino programado que não foi feito) · azul tracejado = descanso. Dias de treino e de descanso são clicáveis

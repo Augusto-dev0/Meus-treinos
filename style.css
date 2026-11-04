@@ -649,7 +649,9 @@ body {
 .active-finish {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 2rem 1.25rem; gap: .75rem; text-align: center; position: relative; overflow: hidden;
+  justify-content: safe center; /* se o conteúdo passar da tela, começa do topo e rola */
+  padding: 2rem 1.25rem; gap: .75rem; text-align: center; position: relative;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
 }
 /* Troféu dentro de um anel que se completa */
 .finish-badge {
@@ -702,9 +704,23 @@ body {
 .finish-close { margin-top: 1.25rem; }
 
 /* Confetes (canvas desenhado pelo script) */
-.confetti-wrap { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+/* fixo na tela: os confetes não rolam junto com o conteúdo quando a tela de conclusão precisa rolar */
+.confetti-wrap { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 /* Conteúdo fica na frente dos confetes para o texto continuar legível */
 .active-finish > :not(.confetti-wrap) { position: relative; z-index: 1; }
+/* Em pé, as duas metades só agrupam (display: contents = nada muda no layout) */
+.finish-left, .finish-right { display: contents; }
+.finish-left > *, .finish-right > * { position: relative; z-index: 1; }
+/* Celular deitado: duas colunas, para caber título, resumo, recordes e botão sem cortar */
+@media (max-height: 560px) and (min-width: 520px) {
+  .active-finish { flex-direction: row; gap: 2rem; padding: .75rem 1.5rem; }
+  .finish-left, .finish-right {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .4rem; min-width: 0; position: relative; z-index: 1;
+  }
+  .finish-left  { flex: 1 1 44%; }
+  .finish-right { flex: 1 1 50%; max-width: 440px; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+}
 .confetti-wrap canvas { position: absolute; inset: 0; }
 
 /* ── Sequência de animação (só roda com .celebrate; o JS reinicia a cada treino) ── */
@@ -1542,4 +1558,48 @@ button.cal-cell:focus-visible span { outline: 2px solid var(--accent); outline-o
 @media (max-width: 360px) {
   .tpl-days { gap: 3px; }
   .tpl-day  { min-height: 42px; font-size: 11px; }
+}
+
+
+/* ══ Recordes, diferenças e edição de carga ═══════════════════════════════ */
+.dd-ex-load { flex-wrap: wrap; row-gap: 3px; }
+.dd-delta { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 20px; border: 1px solid var(--border2); color: var(--muted); }
+.dd-delta.up   { color: var(--accent); border-color: rgba(200,240,96,.4); background: rgba(200,240,96,.08); }
+.dd-delta.down { color: #fb923c; border-color: rgba(251,146,60,.4); background: rgba(251,146,60,.08); }
+.dd-pr { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 20px; color: #facc15; border: 1px solid rgba(250,204,21,.45); background: rgba(250,204,21,.1); }
+.dd-pr i { font-size: 12px; }
+
+.finish-prs { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
+.finish-prs:empty { display: none; }
+.finish-prs-title { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .8px; color: #facc15; }
+.finish-prs-title i { font-size: 15px; }
+.finish-pr { display: flex; flex-direction: column; gap: 1px; text-align: center; padding: 8px 12px; border-radius: var(--r-sm); background: rgba(250,204,21,.07); border: 1px solid rgba(250,204,21,.3); }
+.finish-pr strong { font-size: var(--fs-sm); font-weight: 600; }
+.finish-pr span   { font-size: var(--fs-xs); color: var(--muted); }
+.finish-pr-more { text-align: center; font-size: var(--fs-xs); color: var(--muted); }
+.celebrate .finish-prs { animation: fadeSlide .6s ease 1.5s both; }
+@media (max-height: 560px) {
+  .finish-prs { max-width: 420px; gap: 4px; }
+  .finish-pr { padding: 5px 10px; }
+}
+
+.label-hint { color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.hel-list { display: flex; flex-direction: column; gap: 8px; }
+.hel-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.hel-name { font-size: var(--fs-sm); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hel-f { display: flex; align-items: center; gap: 4px; }
+.hel-f em { font-style: normal; font-size: var(--fs-xs); color: var(--muted); }
+.hel-in { width: 64px; padding: 6px 8px; text-align: right; }
+@media (max-width: 420px) {
+  .hel-row { grid-template-columns: 1fr 1fr; }
+  .hel-name { grid-column: 1 / -1; white-space: normal; }
+  .hel-in { width: 100%; }
+  .hel-f { min-width: 0; }
+}
+
+
+/* Botão Fechar fica à vista mesmo quando a tela de conclusão precisa rolar (celular pequeno com vários recordes) */
+.active-finish .finish-close { position: sticky; bottom: .75rem; z-index: 2; box-shadow: 0 0 0 8px var(--bg); }
+@media (max-height: 560px) and (min-width: 520px) {
+  .active-finish .finish-close { box-shadow: none; }
 }

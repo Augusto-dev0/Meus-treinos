@@ -617,7 +617,7 @@ const K_WELCOME = 'mt-welcome-seen-v1';
 /* E-mail que recebe o feedback. Enquanto estiver vazio, o link "Enviar feedback"
    fica escondido. Preencha entre aspas, por exemplo: 'contato@exemplo.com'.
    O link é montado aqui (não escrito no HTML), o que dificulta a coleta por robôs. */
-const FEEDBACK_EMAIL = 'luizaugusto.contato9@gmail.com';
+const FEEDBACK_EMAIL = '';
 
 function initFeedbackLink() {
   const mail = String(FEEDBACK_EMAIL || '').trim();
@@ -1639,7 +1639,9 @@ function parseReps(v) {
   return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : null;
 }
 const fmtKg = n => String(n).replace('.', ',');
+const hasKg = kg => kg != null && kg > 0;   /* 0 kg = peso do corpo, não é carga */
 function fmtLoad(kg, reps) {
+  if (!hasKg(kg)) kg = null;
   if (kg != null && reps != null) return `${fmtKg(kg)} kg × ${reps}`;
   if (kg != null) return `${fmtKg(kg)} kg`;
   if (reps != null) return `${reps} rep${reps !== 1 ? 's' : ''}`;
@@ -1650,17 +1652,74 @@ function plannedReps(ex) {
   const m = String(ex.sets || '').match(/\d+\s*[x×]\s*(\d+)/i);
   return m ? m[1] : '';
 }
-/* Último registro de carga/reps deste exercício (mais recente primeiro). */
+/* ── Histórico de carga por exercício, recordes e diferenças ─────────────── */
+const sameExercise = (x, ref) => (x.id && ref.id && x.id === ref.id) || norm(x.name) === norm(ref.name);
+
+/* Todos os registros de carga/reps de um exercício, do mais antigo ao mais novo.
+   "before": só os anteriores a essa data (para comparar um treino com o passado). */
+function loadsOf(ref, before) {
+  const out = [];
+  history.forEach(h => {
+    if (!Array.isArray(h.exSnap)) return;
+    if (before && !(new Date(h.date) < new Date(before))) return;
+    h.exSnap.forEach(x => {
+      if (!x || !sameExercise(x, ref)) return;
+      const kg = hasKg(x.kg) ? x.kg : null, reps = x.reps != null ? x.reps : null;
+      if (kg == null && reps == null) return;
+      out.push({ date: h.date, kg, reps });
+    });
+  });
+  return out.sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+/* Último registro de carga/reps deste exercício. */
 function lastLoadFor(ex) {
-  const n = norm(ex.name);
-  for (const h of history) {
-    if (!Array.isArray(h.exSnap)) continue;
-    const hit = h.exSnap.find(x => x && (x.kg != null || x.reps != null) &&
-      ((x.id && x.id === ex.id) || norm(x.name) === n));
-    if (hit) return { kg: hit.kg != null ? hit.kg : null, reps: hit.reps != null ? hit.reps : null, date: h.date };
+  const l = loadsOf(ex);
+  return l.length ? l[l.length - 1] : null;
+}
+/* Este registro é recorde em relação aos anteriores (prev)? Primeira vez nunca é recorde.
+   - com carga: carga maior que todas as anteriores, ou a mesma carga com mais repetições;
+   - sem carga (peso do corpo): mais repetições que o melhor anterior. */
+function prKind(prev, cur) {
+  if (!prev.length) return null;
+  const kg = hasKg(cur.kg) ? cur.kg : null, reps = cur.reps != null ? cur.reps : null;
+  if (kg != null) {
+    const prevKg = Math.max(0, ...prev.map(p => p.kg || 0));
+    if (prevKg > 0 && kg > prevKg) return { type: 'carga', from: prevKg };
+    const same = prev.filter(p => p.kg === kg && p.reps != null).map(p => p.reps);
+    if (reps != null && same.length && reps > Math.max(...same)) return { type: 'reps', kg, from: Math.max(...same) };
+    return null;
+  }
+  if (reps != null) {
+    const bw = prev.filter(p => p.kg == null && p.reps != null).map(p => p.reps);
+    if (bw.length && reps > Math.max(...bw)) return { type: 'reps', from: Math.max(...bw) };
   }
   return null;
 }
+/* Diferença em relação ao registro anterior imediato: { txt, cls } ou null. */
+function loadDelta(prev, cur) {
+  if (!prev.length) return null;
+  const last = prev[prev.length - 1];
+  const kg = hasKg(cur.kg) ? cur.kg : null, reps = cur.reps != null ? cur.reps : null;
+  const repsDiff = () => {
+    if (reps == null || last.reps == null || reps === last.reps) return null;
+    const d = reps - last.reps, n = Math.abs(d);
+    return { txt: `${d > 0 ? '+' : '−'}${n} rep${n !== 1 ? 's' : ''}`, cls: d > 0 ? 'up' : 'down' };
+  };
+  if (kg != null && last.kg != null) {
+    const d = Math.round((kg - last.kg) * 100) / 100;
+    if (d > 0) return { txt: `+${fmtKg(d)} kg`, cls: 'up' };
+    if (d < 0) return { txt: `−${fmtKg(-d)} kg`, cls: 'down' };
+    return repsDiff() || { txt: 'mesma carga', cls: '' };
+  }
+  if (kg == null && last.kg == null) return repsDiff();
+  return null;
+}
+function prText(pr, x) {
+  if (pr.type === 'carga') return `${fmtKg(x.kg)} kg (antes ${fmtKg(pr.from)} kg)`;
+  if (pr.kg != null)       return `${x.reps} reps com ${fmtKg(pr.kg)} kg (antes ${pr.from})`;
+  return `${x.reps} reps (antes ${pr.from})`;
+}
+
 function currentActiveEx() {
   return library.find(e => e.id === activeWk.exIds[activeCur]);
 }
@@ -1711,7 +1770,7 @@ function loadFieldsFor(ex) {
   if (!e || !wantsLoad(ex)) return {};
   const out = {};
   const kg = parseKg(e.kg), reps = parseReps(e.reps);
-  if (kg != null) out.kg = kg;
+  if (hasKg(kg)) out.kg = kg;
   if (reps != null) out.reps = reps;
   return out;
 }
@@ -1797,6 +1856,14 @@ function finishWorkout() {
     return ex ? { id: ex.id, name: ex.name, muscle: ex.muscle, sets: ex.sets || '', color: ex.color, ...loadFieldsFor(ex) } : null;
   }).filter(Boolean);
 
+  /* Recordes: comparados com o histórico ANTES deste treino entrar nele */
+  const prs = [];
+  exSnap.forEach(x => {
+    if (x.kg == null && x.reps == null) return;
+    const pr = prKind(loadsOf(x), x);
+    if (pr) prs.push({ name: x.name, text: prText(pr, x) });
+  });
+
   const entry = {
     id:       Date.now().toString(36),
     date:     new Date().toISOString(),
@@ -1820,7 +1887,14 @@ function finishWorkout() {
   document.getElementById('active-progress-fill').style.width='100%';
 
   const subs=['Mandou muito bem!','Continue assim!','Cada treino conta!','Você é incrível!'];
-  document.getElementById('finish-sub').textContent = subs[Math.floor(Math.random()*subs.length)];
+  document.getElementById('finish-sub').textContent = prs.length
+    ? (prs.length === 1 ? 'Novo recorde pessoal!' : `${prs.length} novos recordes pessoais!`)
+    : subs[Math.floor(Math.random()*subs.length)];
+  const shown = prs.slice(0, 3);
+  document.getElementById('finish-prs').innerHTML = prs.length ? `
+    <div class="finish-prs-title"><i class="ph-fill ph-medal"></i> Recordes de hoje</div>
+    ${shown.map(p => `<div class="finish-pr"><strong>${esc(p.name)}</strong><span>${esc(p.text)}</span></div>`).join('')}
+    ${prs.length > shown.length ? `<div class="finish-pr-more">e mais ${prs.length - shown.length}</div>` : ''}` : '';
 
   /* Mostra tempo formatado no resumo final */
   const timeLabel = totalSecs >= 3600
@@ -2189,13 +2263,25 @@ function entryExercises(h) {
   return (h.exIds || []).map(id => {
     const ex = library.find(e => e.id === id);
     return ex
-      ? { name: ex.name, muscle: ex.muscle, sets: ex.sets || '', color: ex.color }
+      ? { id: ex.id, name: ex.name, muscle: ex.muscle, sets: ex.sets || '', color: ex.color }
       : { name: 'Exercício removido da biblioteca', muscle: '', sets: '', color: '#7a7870', removed: true };
   });
 }
 
 function ddTile(icon, value, label) {
   return `<div class="dd-tile"><i class="ph ${icon}"></i><strong>${value}</strong><span>${label}</span></div>`;
+}
+
+/* Linha "47,5 kg × 9  +2,5 kg  Recorde" do card de detalhes. */
+function ddLoadLine(e, h) {
+  const txt = fmtLoad(e.kg != null ? e.kg : null, e.reps != null ? e.reps : null);
+  if (!txt) return '';
+  const prev = e.removed ? [] : loadsOf(e, h.date);
+  const cur = { kg: e.kg, reps: e.reps };
+  const delta = loadDelta(prev, cur), pr = prKind(prev, cur);
+  return `<div class="dd-ex-load"><i class="ph-bold ph-barbell"></i> ${esc(txt)}
+    ${delta ? `<span class="dd-delta ${delta.cls}">${esc(delta.txt)}</span>` : ''}
+    ${pr ? '<span class="dd-pr"><i class="ph-fill ph-medal"></i> Recorde</span>' : ''}</div>`;
 }
 
 function renderDayDetailEntry(h) {
@@ -2224,7 +2310,7 @@ function renderDayDetailEntry(h) {
           <div class="dd-ex-meta">
             <div class="dd-ex-name">${esc(e.name)}</div>
             ${e.muscle ? `<div class="dd-ex-sub" style="color:${esc(e.color || 'var(--muted)')}">${esc(e.muscle)}</div>` : ''}
-            ${fmtLoad(e.kg != null ? e.kg : null, e.reps != null ? e.reps : null) ? `<div class="dd-ex-load"><i class="ph-bold ph-barbell"></i> ${esc(fmtLoad(e.kg != null ? e.kg : null, e.reps != null ? e.reps : null))}</div>` : ''}
+            ${ddLoadLine(e, h)}
           </div>
           ${e.sets ? `<span class="dd-ex-sets">${esc(e.sets)}</span>` : ''}
         </div>`).join('')}
@@ -2320,6 +2406,46 @@ function confirmDeleteHistory(id) {
 }
 
 /* ── Editar histórico ─────────────────────────────────────────────────────── */
+/* Exercícios do registro (como "foto") que podem receber carga/reps. */
+let histEditExs = [];
+function renderHistEditLoads(h) {
+  const hadSnap = Array.isArray(h.exSnap) && h.exSnap.length;
+  histEditExs = (hadSnap ? h.exSnap : entryExercises(h).filter(e => !e.removed))
+    .map(x => { const o = { ...x }; delete o.removed; return o; })
+    .filter(x => x && x.name);
+  const wrap = document.getElementById('hist-edit-loads-wrap');
+  wrap.style.display = histEditExs.length ? '' : 'none';
+  document.getElementById('hist-edit-loads').innerHTML = histEditExs.map((x, i) => `
+    <div class="hel-row">
+      <span class="hel-name">${esc(x.name)}</span>
+      <label class="hel-f"><input class="input hel-in" data-i="${i}" data-f="kg" type="text" inputmode="decimal" maxlength="6" placeholder="—"
+        value="${hasKg(x.kg) ? esc(fmtKg(x.kg)) : ''}" aria-label="Carga em kg de ${esc(x.name)}"><em>kg</em></label>
+      <label class="hel-f"><input class="input hel-in" data-i="${i}" data-f="reps" type="text" inputmode="numeric" maxlength="3" placeholder="—"
+        value="${x.reps != null ? esc(String(x.reps)) : ''}" aria-label="Repetições de ${esc(x.name)}"><em>rep</em></label>
+    </div>`).join('');
+}
+/* Lê os campos e devolve a nova "foto" (ou null se nada precisa mudar). */
+function readHistEditLoads(h) {
+  if (!histEditExs.length) return null;
+  const next = histEditExs.map(x => ({ ...x }));
+  let touched = false;
+  document.querySelectorAll('#hist-edit-loads .hel-in').forEach(inp => {
+    const x = next[+inp.dataset.i]; if (!x) return;
+    if (inp.dataset.f === 'kg') {
+      const v = parseKg(inp.value);
+      if (hasKg(v)) x.kg = v; else delete x.kg;
+    } else {
+      const v = parseReps(inp.value);
+      if (v != null) x.reps = v; else delete x.reps;
+    }
+  });
+  const hadSnap = Array.isArray(h.exSnap) && h.exSnap.length;
+  const before = JSON.stringify(histEditExs), after = JSON.stringify(next);
+  touched = before !== after;
+  /* Registro antigo sem "foto": só cria uma se você realmente digitou alguma carga */
+  if (!hadSnap && !touched) return null;
+  return next;
+}
 function openHistEditModal(id) {
   const h = history.find(e => e.id === id);
   if (!h) return;
@@ -2335,6 +2461,7 @@ function openHistEditModal(id) {
   document.getElementById('hist-edit-date').value     = `${yyyy}-${mm}-${dd}`;
   document.getElementById('hist-edit-duration').value = h.duration || '';
   document.getElementById('hist-edit-day').value      = String(h.dayIndex);
+  renderHistEditLoads(h);
 
   document.getElementById('overlay-hist-edit').classList.add('open');
   document.body.style.overflow='hidden';
@@ -2374,12 +2501,14 @@ function saveHistEdit() {
     newDate = originalDate;
   }
 
+  const loads = readHistEditLoads(history[idx]);
   history[idx] = {
     ...history[idx],
     wkName:   name,
     date:     newDate.toISOString(),
     duration: duration,
     dayIndex: dayIndex,
+    ...(loads ? { exSnap: loads } : {}),
   };
 
   // Reordena histórico por data (mais recente primeiro)

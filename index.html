@@ -69,7 +69,7 @@
         "Biblioteca pessoal e catálogo com mais de 5 mil variações de exercícios",
         "Aviso de fim de cronômetro por som, vibração, flash e notificação",
         "Modelos de treino prontos (ABC, Push/Pull/Legs, Superior/Inferior, Corpo inteiro e Em casa)",
-        "Registro de carga e repetições por exercício, já preenchido com a última vez",
+        "Registro de carga e repetições por exercício, com recordes e diferença da última vez",
         "Backup dos dados em arquivo (exportar e importar)",
         "Funciona offline e pode ser instalado como app (PWA)",
         "Dados salvos apenas no navegador, sem cadastro"
@@ -151,7 +151,7 @@
         <li>Catálogo com mais de 5 mil variações de exercícios</li>
         <li>Timer de descanso com aviso sonoro, vibração e notificação</li>
         <li>Modelos de treino prontos para começar rápido</li>
-        <li>Registro de carga e repetições, com a última vez já preenchida</li>
+        <li>Registro de carga e repetições, com recordes e diferença da última vez</li>
         <li>Backup dos dados em arquivo, para guardar ou levar para outro aparelho</li>
       </ul>
       <p>Ative o JavaScript no navegador para usar o app. Seus dados ficam salvos apenas no seu dispositivo.</p>
@@ -369,6 +369,7 @@
   <!-- Finish screen -->
   <div id="active-finish" class="active-finish" style="display:none">
     <div class="confetti-wrap" id="confetti-wrap" aria-hidden="true"></div>
+    <div class="finish-left">
     <div class="finish-badge" id="finish-badge">
       <span class="finish-ripple"></span><span class="finish-ripple r2"></span>
       <svg class="finish-ring" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
@@ -379,10 +380,14 @@
     </div>
     <h2 class="finish-title"><span class="ft-line">TREINO</span> <span class="ft-line ft-accent">CONCLUÍDO!</span></h2>
     <p class="finish-sub" id="finish-sub">Excelente trabalho!</p>
+    </div>
+    <div class="finish-right">
     <div class="finish-stats" id="finish-stats"></div>
+    <div class="finish-prs" id="finish-prs"></div>
     <button class="tbtn primary finish-close" onclick="closeActiveWorkout()">
       <i class="ph ph-check"></i> Fechar
     </button>
+    </div>
   </div>
 </div>
 
@@ -632,6 +637,10 @@
           <option value="5">Sábado</option>
           <option value="6">Domingo</option>
         </select>
+      </div>
+      <div class="form-row" id="hist-edit-loads-wrap" style="display:none">
+        <label>Carga e repetições <span class="label-hint">(opcional)</span></label>
+        <div class="hel-list" id="hist-edit-loads"></div>
       </div>
     </div>
     <div class="modal-footer">
